@@ -1,4 +1,6 @@
  //login
+void login(Restaurante restaurantes[], Comidas pratos[], int numeroRestaurantes, int numeroPratos) {
+    int codigoRestaurante, opcao, pratoEscolhido;
     while (1) {
         printf("\nLOGIN UAIFOOD RESTAURANTE\n");
         printf("Digite o codigo do restaurante (ou um numero negativo para sair):\n");
