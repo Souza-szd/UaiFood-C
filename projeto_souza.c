@@ -47,7 +47,7 @@ main(): Chama as funções na ordem correta para o fluxo do programa (cadastro, 
 
 //criar struct para cada restaurante, com código e nome
 #define NUM_RESTAURANTES 3
-#define NUM_PRATOS 12
+#define NUM_PRATOS_POR_RESTAURANTE 4
 
 
 typedef struct{
@@ -74,26 +74,28 @@ void mostrarCabecalho() {
 
 
 
-//função adicionar restaurante
-void add_restaurantes_e_pratos(Restaurante restaurantes[], Comidas pratos[], int numeroRestaurantes, int numeroPratos){
-    for(int i = 0; i < numeroRestaurantes; i++){
-        printf("Cadastre o codigo e nome do restaurante %d:\n", i + 1);
-        scanf("%d %49s", &restaurantes[i].codigo, restaurantes[i].nome); // é bomcolocar %49s para não ocorrer o buferr overlow 
+//função adicionar restaurante: vou usar ponteiro pois se eu fizer por valo vai significar que qualquer alteração no restaurante dentro da função não será refletida fora dela.
+void add_restaurante(Restaurante *restaurante) {
+    scanf("%d", &restaurante->codigo);
+    getchar(); // Consumir a quebra de linha após scanf para evitar problemas com fgets
+    fgets(restaurante->nome, sizeof(restaurante->nome), stdin);
+    restaurante->nome[strcspn(restaurante->nome, "\n")] = '\0'; // Remover a quebra de linha
+}
 
 
-    for(int j = 0; j<numeroPratos; j++){
-        printf("Cadastre codigo do prato, codigo do restaurante, descricao e preco dos pratos do restaurante %s:\n", restaurantes[i].nome);
-        scanf("%d", &pratos[j].codigoPrato);
+//função adicionar pratos
 
-        scanf("%d", &pratos[j].codigoRest);
-        getchar(); //Para dar nenhum problema no fgets
+void add_pratos(Comidas pratos[], int numeroPratos, int codigoRestaurante) {
+    for (int i = 0; i < numeroPratos; i++) {
+        scanf("%d", &pratos[i].codigoPrato);
+        getchar(); // Consumir a quebra de linha antes de fgets
+        pratos[i].codigoRest = codigoRestaurante; // Fiz isso para os codigos serem os memsos
+        
+        fgets(pratos[i].descricao, sizeof(pratos[i].descricao), stdin);
+        pratos[i].descricao[strcspn(pratos[i].descricao, "\n")] = '\0'; // Remover a quebra de linha
 
-        fgets(pratos[j].descricao, sizeof(pratos[j].descricao), stdin);
-        pratos[j].descricao[strcspn(pratos[j].descricao, "\n")] = '\0'; //Gosto de usar para consumir o \n
-
-        scanf("%f", &pratos[j].preco);
-
-        }
+        scanf("%f", &pratos[i].preco);
+        getchar();
     }
 }
 
@@ -103,31 +105,18 @@ void add_restaurantes_e_pratos(Restaurante restaurantes[], Comidas pratos[], int
 int main(){
 
     Restaurante restaurantes[NUM_RESTAURANTES];
-    Comidas pratos[NUM_PRATOS];
+    Comidas pratos[NUM_RESTAURANTES * NUM_PRATOS_POR_RESTAURANTE];
 
-    mostrarCabecalho();
-    add_restaurantes_e_pratos(restaurantes, pratos, NUM_RESTAURANTES, NUM_PRATOS);
+    // Loop para cadastrar restaurantes e pratos
+    for (int i = 0; i < NUM_RESTAURANTES; i++) {
+        // Cadastrar restaurante
+        printf("Cadastre o codigo e nome do restaurante %d:\n", i + 1);
+        add_restaurante(&restaurantes[i]);
+
+        // Cadastrar pratos para o restaurante atual
+        printf("Cadastre codigo do prato, codigo do restaurante, descricao e preco dos pratos do restaurante %s:\n", restaurantes[i].nome);
+        add_pratos(&pratos[i * NUM_PRATOS_POR_RESTAURANTE], NUM_PRATOS_POR_RESTAURANTE, restaurantes[i].codigo); //&pratos[i * NUM_PRATOS_POR_RESTAURANTE] coloca os praros nos lugares certos
+    }
      
-     
-    //laço para cadastrar cada restaurante
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-}
+}  
+   
