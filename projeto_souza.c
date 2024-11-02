@@ -83,7 +83,16 @@ void add_restaurantes_e_pratos(Restaurante restaurantes[], Comidas pratos[], int
 
     for(int j = 0; j<numeroPratos; j++){
         printf("Cadastre codigo do prato, codigo do restaurante, descricao e preco dos pratos do restaurante %s:\n", restaurantes[i].nome);
-        scanf("%d %d %49s %f", &pratos[j].codigoPrato, &pratos[j].codigoRest, pratos[j].descricao, &pratos[j].preco);
+        scanf("%d", &pratos[j].codigoPrato);
+
+        scanf("%d", &pratos[j].codigoRest);
+        getchar(); //Para dar nenhum problema no fgets
+
+        fgets(pratos[j].descricao, sizeof(pratos[j].descricao), stdin);
+        pratos[j].descricao[strcspn(pratos[j].descricao, "\n")] = '\0'; //Gosto de usar para consumir o \n
+
+        scanf("%f", &pratos[j].preco);
+
         }
     }
 }
@@ -101,8 +110,6 @@ int main(){
      
      
     //laço para cadastrar cada restaurante
-
-
 
 
 
