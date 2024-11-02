@@ -67,34 +67,62 @@ typedef struct{
 void mostrarCabecalho() {
     printf("**************************************************\n");
     printf("uaiFood - Restaurante\n");
-    printf("**************************************************\n");
+    printf("**************************************************\n\n");
 }
 
 
 
-
+#define MAX_STRING_LENGTH 50
 
 //função adicionar restaurante
 void add_restaurantes_e_pratos(Restaurante restaurantes[], Comidas pratos[], int numeroRestaurantes, int numeroPratos){
     for(int i = 0; i < numeroRestaurantes; i++){
         printf("Cadastre o codigo e nome do restaurante %d:\n", i + 1);
-        scanf("%d %49s", &restaurantes[i].codigo, restaurantes[i].nome); // é bomcolocar %49s para não ocorrer o buferr overlow 
+        
+        /*Tirando o scanf do nome do restaurante pois
+          ele pode conter espaços*/
+        //scanf("%d %49s", &restaurantes[i].codigo, restaurantes[i].nome);
+        
+        scanf("%i", &restaurantes[i].codigo);
 
+        fgets(restaurantes[i].nome, MAX_STRING_LENGTH, stdin);
 
-    for(int j = 0; j<numeroPratos; j++){
-        printf("Cadastre codigo do prato, codigo do restaurante, descricao e preco dos pratos do restaurante %s:\n", restaurantes[i].nome);
-        scanf("%d %d %49s %f", &pratos[j].codigoPrato, &pratos[j].codigoRest, pratos[j].descricao, &pratos[j].preco);
+        //Tirando o "\n" do espaço de penultimo caractere
+        restaurantes[i].nome[strlen(restaurantes[i].nome)-1] = '\0';
+
+        for(int j = 0; j<numeroPratos; j++){
+            printf("Cadastre codigo do prato, codigo do restaurante, descricao e preco dos pratos do restaurante %s:\n", restaurantes[i].nome);
+            
+            /*Tirando o scanf da descrição pois 
+              ela pode conter espaços*/
+            //scanf("%d %d %49s %f", &pratos[j].codigoPrato, &pratos[j].codigoRest, pratos[j].descricao, &pratos[j].preco);
+
+            scanf("%d %d", &pratos[j].codigoPrato, &pratos[j].codigoRest);
+
+            fgets(pratos[j].descricao, MAX_STRING_LENGTH, stdin);
+
+            /*Pegando a última ocorrência do
+              caractere de espaço*/
+            char* spaceIndex = strrchr(pratos[j].descricao, ' ');
+
+            /*Limitando a descrição até o ultimo caractere de espaço.
+              Depois dele, é o preço do prato*/
+            *spaceIndex = '\0';
+
+            char precoStr[16];
+            strcpy(precoStr, spaceIndex+1);
+
+            sscanf(precoStr, "%f", &pratos[j].preco);
         }
     }
 }
 
-
-
+Restaurante restaurantes[NUM_RESTAURANTES];
+Comidas pratos[NUM_PRATOS];
 
 int main(){
 
-    Restaurante restaurantes[NUM_RESTAURANTES];
-    Comidas pratos[NUM_PRATOS];
+    
 
     mostrarCabecalho();
     add_restaurantes_e_pratos(restaurantes, pratos, NUM_RESTAURANTES, NUM_PRATOS);
