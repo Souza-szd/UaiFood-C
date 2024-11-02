@@ -20,3 +20,10 @@
         printf("Restaurante nao encontrado. Tente novamente.\n");
         continue; 
         }
+
+     //menu opcoes
+        while (1) {
+            printf("%s – Menu de Opcoes\n", restaurantes[i].nome);
+            printf("1 – Mostrar pratos\n");
+            printf("0 – Logout\n");
+            scanf("%d", &opcao);
