@@ -102,11 +102,7 @@ int main(){
      
     //laço para cadastrar cada restaurante
 
-SEXOOOOOOOOOOOOOOOOOOOOO
 
-
-BUCETAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-aaaaaa
 
 
 
