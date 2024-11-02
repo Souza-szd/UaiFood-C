@@ -47,7 +47,7 @@ main(): Chama as funções na ordem correta para o fluxo do programa (cadastro, 
 
 //criar struct para cada restaurante, com código e nome
 #define NUM_RESTAURANTES 3
-#define NUM_PRATOS 12
+#define NUM_PRATOS_POR_RESTAURANTE 4
 
 
 typedef struct{
@@ -67,17 +67,19 @@ typedef struct{
 void mostrarCabecalho() {
     printf("**************************************************\n");
     printf("uaiFood - Restaurante\n");
-    printf("**************************************************\n\n");
+    printf("**************************************************\n");
 }
 
-
+void tirarEspacoFirstIndex(char* str) {
+    strcpy(str, strchr(str, ' ')+1);
+}
 
 #define MAX_STRING_LENGTH 50
 
 //função adicionar restaurante
-void add_restaurantes_e_pratos(Restaurante restaurantes[], Comidas pratos[], int numeroRestaurantes, int numeroPratos){
+void add_restaurantes_e_pratos(Restaurante restaurantes[], Comidas pratos[], int numeroRestaurantes, int numeroPratosPorRestaurante){
     for(int i = 0; i < numeroRestaurantes; i++){
-        printf("Cadastre o codigo e nome do restaurante %d:\n", i + 1);
+        printf("\nCadastre o codigo e nome do restaurante %d:\n", i + 1);
         
         /*Tirando o scanf do nome do restaurante pois
           ele pode conter espaços*/
@@ -89,9 +91,12 @@ void add_restaurantes_e_pratos(Restaurante restaurantes[], Comidas pratos[], int
 
         //Tirando o "\n" do espaço de penultimo caractere
         restaurantes[i].nome[strlen(restaurantes[i].nome)-1] = '\0';
+        //Tirando o espaço do primeiro caractere
+        tirarEspacoFirstIndex(restaurantes[i].nome);
 
-        for(int j = 0; j<numeroPratos; j++){
-            printf("Cadastre codigo do prato, codigo do restaurante, descricao e preco dos pratos do restaurante %s:\n", restaurantes[i].nome);
+        printf("\nCadastre codigo do prato, codigo do restaurante, descricao e preco dos pratos do restaurante %s:\n", restaurantes[i].nome);
+
+        for(int j = 0; j < numeroPratosPorRestaurante; j++){
             
             /*Tirando o scanf da descrição pois 
               ela pode conter espaços*/
@@ -105,10 +110,15 @@ void add_restaurantes_e_pratos(Restaurante restaurantes[], Comidas pratos[], int
               caractere de espaço*/
             char* spaceIndex = strrchr(pratos[j].descricao, ' ');
 
+
+
             /*Limitando a descrição até o ultimo caractere de espaço.
               Depois dele, é o preço do prato*/
             *spaceIndex = '\0';
 
+            //Tirando o espaço do primeiro caractere
+            tirarEspacoFirstIndex(pratos[j].descricao);
+            
             char precoStr[16];
             strcpy(precoStr, spaceIndex+1);
 
@@ -118,14 +128,14 @@ void add_restaurantes_e_pratos(Restaurante restaurantes[], Comidas pratos[], int
 }
 
 Restaurante restaurantes[NUM_RESTAURANTES];
-Comidas pratos[NUM_PRATOS];
+Comidas pratos[NUM_RESTAURANTES*NUM_PRATOS_POR_RESTAURANTE];
 
 int main(){
 
     
 
     mostrarCabecalho();
-    add_restaurantes_e_pratos(restaurantes, pratos, NUM_RESTAURANTES, NUM_PRATOS);
+    add_restaurantes_e_pratos(restaurantes, pratos, NUM_RESTAURANTES, NUM_PRATOS_POR_RESTAURANTE);
      
      
     //laço para cadastrar cada restaurante
