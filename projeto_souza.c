@@ -75,48 +75,47 @@ void mostrarCabecalho() {
 
 
 //função adicionar restaurante: vou usar ponteiro pois se eu fizer por valo vai significar que qualquer alteração no restaurante dentro da função não será refletida fora dela.
-void add_restaurante(Restaurante *restaurante) {
-    scanf("%d", &restaurante->codigo);
+void add_restaurante_e_pratos(Restaurante restaurantes[], Comidas pratos[], int numeroRestaurantes, int numeroPratosPorRestaurante) {
+    for(int i = 0; i < numeroRestaurantes; i++){
+    printf("Cadastre o codigo e nome do restaurante %d:\n", i + 1);
+
+    scanf("%d", &restaurantes[i].codigo);
     getchar(); // Consumir a quebra de linha após scanf para evitar problemas com fgets
-    fgets(restaurante->nome, sizeof(restaurante->nome), stdin);
-    restaurante->nome[strcspn(restaurante->nome, "\n")] = '\0'; // Remover a quebra de linha
-}
 
+    fgets(restaurantes[i].nome, sizeof(restaurantes[i].nome), stdin);
+    restaurantes[i].nome[strcspn(restaurantes[i].nome, "\n")] = '\0';
 
-//função adicionar pratos
+     printf("Cadastre codigo do prato, codigo do restaurante, descricao e preco dos pratos do restaurante %s:\n", restaurantes[i].nome);
 
-void add_pratos(Comidas pratos[], int numeroPratos, int codigoRestaurante) {
-    for (int i = 0; i < numeroPratos; i++) {
-        scanf("%d", &pratos[i].codigoPrato);
-        getchar(); // Consumir a quebra de linha antes de fgets
-        pratos[i].codigoRest = codigoRestaurante; // Fiz isso para os codigos serem os memsos
+    for(int j = 0; j < numeroPratosPorRestaurante; j++){
+        scanf("%d %d", &pratos[j].codigoPrato, &pratos[j].codigoRest);
+        getchar(); // Consumir a quebra de linha após scanf para evitar problemas com fgets
+
+        fgets(pratos[j].descricao, sizeof(pratos[j].descricao), stdin);
         
-        fgets(pratos[i].descricao, sizeof(pratos[i].descricao), stdin);
-        pratos[i].descricao[strcspn(pratos[i].descricao, "\n")] = '\0'; // Remover a quebra de linha
+        //fazer um ponteiro que vai armazenar o endereço no ultimo espaço encontrado
+            char* spaceIndex = strrchr(pratos[j].descricao, ' ');
 
-        scanf("%f", &pratos[i].preco);
-        getchar();
+            *spaceIndex = '\0';
+            
+            char precoStr[16];
+            strcpy(precoStr, spaceIndex+1);
+
+            sscanf(precoStr, "%f", &pratos[j].preco);
+    }
     }
 }
-
 
 
 
 int main(){
 
     Restaurante restaurantes[NUM_RESTAURANTES];
-    Comidas pratos[NUM_RESTAURANTES * NUM_PRATOS_POR_RESTAURANTE];
+    Comidas pratos[NUM_PRATOS_POR_RESTAURANTE];
 
-    // Loop para cadastrar restaurantes e pratos
-    for (int i = 0; i < NUM_RESTAURANTES; i++) {
-        // Cadastrar restaurante
-        printf("Cadastre o codigo e nome do restaurante %d:\n", i + 1);
-        add_restaurante(&restaurantes[i]);
 
-        // Cadastrar pratos para o restaurante atual
-        printf("Cadastre codigo do prato, codigo do restaurante, descricao e preco dos pratos do restaurante %s:\n", restaurantes[i].nome);
-        add_pratos(&pratos[i * NUM_PRATOS_POR_RESTAURANTE], NUM_PRATOS_POR_RESTAURANTE, restaurantes[i].codigo); //&pratos[i * NUM_PRATOS_POR_RESTAURANTE] coloca os praros nos lugares certos
-    }
+    mostrarCabecalho();
+    add_restaurante_e_pratos(restaurantes, pratos, NUM_RESTAURANTES, NUM_PRATOS_POR_RESTAURANTE);
      
-}  
+}
    

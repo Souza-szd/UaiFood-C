@@ -47,7 +47,7 @@ main(): Chama as funções na ordem correta para o fluxo do programa (cadastro, 
 
 //criar struct para cada restaurante, com código e nome
 #define NUM_RESTAURANTES 3
-#define NUM_PRATOS 12
+#define NUM_PRATOS_POR_RESTAURANTE 4
 
 
 typedef struct{
@@ -74,51 +74,48 @@ void mostrarCabecalho() {
 
 
 
-//função adicionar restaurante
-void add_restaurantes_e_pratos(Restaurante restaurantes[], Comidas pratos[], int numeroRestaurantes, int numeroPratos){
+//função adicionar restaurante: vou usar ponteiro pois se eu fizer por valo vai significar que qualquer alteração no restaurante dentro da função não será refletida fora dela.
+void add_restaurante_e_pratos(Restaurante restaurantes[], Comidas pratos[], int numeroRestaurantes, int numeroPratosPorRestaurante) {
     for(int i = 0; i < numeroRestaurantes; i++){
-        printf("Cadastre o codigo e nome do restaurante %d:\n", i + 1);
-        scanf("%d %49s", &restaurantes[i].codigo, restaurantes[i].nome); // é bomcolocar %49s para não ocorrer o buferr overlow 
+    printf("Cadastre o codigo e nome do restaurante %d:\n", i + 1);
 
+    scanf("%d", &restaurantes[i].codigo);
+    getchar(); // Consumir a quebra de linha após scanf para evitar problemas com fgets
 
-    for(int j = 0; j<numeroPratos; j++){
-        printf("Cadastre codigo do prato, codigo do restaurante, descricao e preco dos pratos do restaurante %s:\n", restaurantes[i].nome);
-        scanf("%d %d %49s %f", &pratos[j].codigoPrato, &pratos[j].codigoRest, pratos[j].descricao, &pratos[j].preco);
-        }
+    fgets(restaurantes[i].nome, sizeof(restaurantes[i].nome), stdin);
+    restaurantes[i].nome[strcspn(restaurantes[i].nome, "\n")] = '\0';
+
+     printf("Cadastre codigo do prato, codigo do restaurante, descricao e preco dos pratos do restaurante %s:\n", restaurantes[i].nome);
+
+    for(int j = 0; j < numeroPratosPorRestaurante; j++){
+        scanf("%d %d", &pratos[j].codigoPrato, &pratos[j].codigoRest);
+        getchar(); // Consumir a quebra de linha após scanf para evitar problemas com fgets
+
+        fgets(pratos[j].descricao, sizeof(pratos[j].descricao), stdin);
+        
+        //fazer um ponteiro que vai armazenar o endereço no ultimo espaço encontrado
+            char* spaceIndex = strrchr(pratos[j].descricao, ' ');
+
+            *spaceIndex = '\0';
+            
+            char precoStr[16];
+            strcpy(precoStr, spaceIndex+1);
+
+            sscanf(precoStr, "%f", &pratos[j].preco);
+    }
     }
 }
-
 
 
 
 int main(){
 
     Restaurante restaurantes[NUM_RESTAURANTES];
-    Comidas pratos[NUM_PRATOS];
+    Comidas pratos[NUM_PRATOS_POR_RESTAURANTE];
+
 
     mostrarCabecalho();
-    add_restaurantes_e_pratos(restaurantes, pratos, NUM_RESTAURANTES, NUM_PRATOS);
+    add_restaurante_e_pratos(restaurantes, pratos, NUM_RESTAURANTES, NUM_PRATOS_POR_RESTAURANTE);
      
-     
-    //laço para cadastrar cada restaurante
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
+   
