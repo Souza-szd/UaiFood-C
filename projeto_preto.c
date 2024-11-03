@@ -81,9 +81,9 @@ void tirarNovaLinhaLastIndex(char* str) {
 }
 
 //função adicionar restaurante
-void add_restaurante_e_pratos(Restaurante restaurantes[], Comidas pratos[], int numeroRestaurantes, int numeroPratosPorRestaurante) {
-    for(int i = 0; i < numeroRestaurantes; i++){
-    printf("Cadastre o codigo e nome do restaurante %d:\n", i + 1);
+void add_restaurantes_e_pratos(Restaurante restaurantes[], Comidas pratos[], int numeroRestaurantes, int numeroPratosPorRestaurante) {
+    for (int i = 0; i < numeroRestaurantes; i++) {
+        printf("\nCadastre o codigo e nome do restaurante %d:\n", i + 1);
 
         
           /*Tirando o scanf do nome do restaurante pois
