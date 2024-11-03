@@ -49,7 +49,6 @@ main(): Chama as funções na ordem correta para o fluxo do programa (cadastro, 
 #define NUM_RESTAURANTES 3
 #define NUM_PRATOS_POR_RESTAURANTE 4
 
-
 typedef struct{
     int codigo;
     char nome[50];
@@ -62,6 +61,8 @@ typedef struct{
     float preco;
 }Comidas;
 
+Restaurante restaurantes[NUM_RESTAURANTES];
+Comidas pratos[NUM_RESTAURANTES*NUM_PRATOS_POR_RESTAURANTE];
 
 //função para cabeçalho
 void mostrarCabecalho() {
@@ -70,9 +71,8 @@ void mostrarCabecalho() {
     printf("**************************************************\n");
 }
 
-void tirarEspacoFirstIndex(char* str) {
-    strcpy(str, strchr(str, ' ')+1);
-}
+void tirarEspacoFirstIndex(char* str);
+void tirarNovaLinhaLastIndex(char* str);
 
 #define MAX_STRING_LENGTH 50
 
@@ -89,8 +89,9 @@ void add_restaurantes_e_pratos(Restaurante restaurantes[], Comidas pratos[], int
 
         fgets(restaurantes[i].nome, MAX_STRING_LENGTH, stdin);
 
-        //Tirando o "\n" do espaço de penultimo caractere
-        restaurantes[i].nome[strlen(restaurantes[i].nome)-1] = '\0';
+        //Tirando o "\n" do local do ultimo caractere
+        tirarNovaLinhaLastIndex(restaurantes[i].nome);
+
         //Tirando o espaço do primeiro caractere
         tirarEspacoFirstIndex(restaurantes[i].nome);
 
@@ -127,9 +128,6 @@ void add_restaurantes_e_pratos(Restaurante restaurantes[], Comidas pratos[], int
     }
 }
 
-Restaurante restaurantes[NUM_RESTAURANTES];
-Comidas pratos[NUM_RESTAURANTES*NUM_PRATOS_POR_RESTAURANTE];
-
 int main(){
 
     
@@ -159,4 +157,12 @@ int main(){
 
 
 
+}
+
+void tirarEspacoFirstIndex(char* str) {
+    strcpy(str, strchr(str, ' ')+1);
+}
+
+void tirarNovaLinhaLastIndex(char* str) {
+    str[strlen(str)-1] = '\0';
 }
