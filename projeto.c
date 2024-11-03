@@ -71,7 +71,6 @@ void mostrarCabecalho() {
     printf("**************************************************\n");
 }
 
-void tirarEspacoFirstIndex(char* str);
 void tirarNovaLinhaLastIndex(char* str);
 
 #define MAX_STRING_LENGTH 50
@@ -86,14 +85,12 @@ void add_restaurantes_e_pratos(Restaurante restaurantes[], Comidas pratos[], int
         //scanf("%d %49s", &restaurantes[i].codigo, restaurantes[i].nome);
         
         scanf("%i", &restaurantes[i].codigo);
+        getchar();
 
         fgets(restaurantes[i].nome, MAX_STRING_LENGTH, stdin);
 
         //Tirando o "\n" do local do ultimo caractere
         tirarNovaLinhaLastIndex(restaurantes[i].nome);
-
-        //Tirando o espaço do primeiro caractere
-        tirarEspacoFirstIndex(restaurantes[i].nome);
 
         printf("\nCadastre codigo do prato, codigo do restaurante, descricao e preco dos pratos do restaurante %s:\n", restaurantes[i].nome);
 
@@ -104,6 +101,7 @@ void add_restaurantes_e_pratos(Restaurante restaurantes[], Comidas pratos[], int
             //scanf("%d %d %49s %f", &pratos[j].codigoPrato, &pratos[j].codigoRest, pratos[j].descricao, &pratos[j].preco);
 
             scanf("%d %d", &pratos[j].codigoPrato, &pratos[j].codigoRest);
+            getchar();
 
             fgets(pratos[j].descricao, MAX_STRING_LENGTH, stdin);
 
@@ -111,14 +109,9 @@ void add_restaurantes_e_pratos(Restaurante restaurantes[], Comidas pratos[], int
               caractere de espaço*/
             char* spaceIndex = strrchr(pratos[j].descricao, ' ');
 
-
-
             /*Limitando a descrição até o ultimo caractere de espaço.
               Depois dele, é o preço do prato*/
             *spaceIndex = '\0';
-
-            //Tirando o espaço do primeiro caractere
-            tirarEspacoFirstIndex(pratos[j].descricao);
             
             char precoStr[16];
             strcpy(precoStr, spaceIndex+1);
@@ -157,10 +150,6 @@ int main(){
 
 
 
-}
-
-void tirarEspacoFirstIndex(char* str) {
-    strcpy(str, strchr(str, ' ')+1);
 }
 
 void tirarNovaLinhaLastIndex(char* str) {
