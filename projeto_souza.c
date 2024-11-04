@@ -3,6 +3,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <locale.h>
 
 
 
@@ -50,72 +51,174 @@ main(): Chama as funções na ordem correta para o fluxo do programa (cadastro, 
 #define NUM_PRATOS_POR_RESTAURANTE 4
 
 
-typedef struct{
+
+typedef struct {
     int codigo;
     char nome[50];
 }Restaurante;
 
-typedef struct{
+typedef struct {
     int codigoPrato;
     int codigoRest;
     char descricao[50];
     float preco;
 }Comidas;
 
+Restaurante restaurantes[NUM_RESTAURANTES];
+Comidas pratos[NUM_RESTAURANTES * NUM_PRATOS_POR_RESTAURANTE];
+
+#define MAX_STRING_LENGTH 50
 
 //função para cabeçalho
 void mostrarCabecalho() {
     printf("**************************************************\n");
     printf("uaiFood - Restaurante\n");
-    printf("**************************************************\n");
+    printf("**************************************************");
 }
 
+void tirarNovaLinhaLastIndex(char* str) {
+    str[strlen(str) - 1] = '\0';
+}
 
+//função adicionar restaurante
+void add_restaurantes_e_pratos(Restaurante restaurantes[], Comidas pratos[], int numeroRestaurantes, int numeroPratosPorRestaurante) {
+    for (int i = 0; i < numeroRestaurantes; i++) {
+        printf("\nCadastre o codigo e nome do restaurante %d:\n", i + 1);
 
-
-
-//função adicionar restaurante: vou usar ponteiro pois se eu fizer por valo vai significar que qualquer alteração no restaurante dentro da função não será refletida fora dela.
-void add_restaurante_e_pratos(Restaurante restaurantes[], Comidas pratos[], int numeroRestaurantes, int numeroPratosPorRestaurante) {
-    for(int i = 0; i < numeroRestaurantes; i++){
-    printf("Cadastre o codigo e nome do restaurante %d:\n", i + 1);
-
-    scanf("%d", &restaurantes[i].codigo);
-    getchar(); // Consumir a quebra de linha após scanf para evitar problemas com fgets
-
-    fgets(restaurantes[i].nome, sizeof(restaurantes[i].nome), stdin);
-    restaurantes[i].nome[strcspn(restaurantes[i].nome, "\n")] = '\0';
-
-     printf("Cadastre codigo do prato, codigo do restaurante, descricao e preco dos pratos do restaurante %s:\n", restaurantes[i].nome);
-
-    for(int j = 0; j < numeroPratosPorRestaurante; j++){
-        scanf("%d %d", &pratos[j].codigoPrato, &pratos[j].codigoRest);
-        getchar(); // Consumir a quebra de linha após scanf para evitar problemas com fgets
-
-        fgets(pratos[j].descricao, sizeof(pratos[j].descricao), stdin);
         
-        //fazer um ponteiro que vai armazenar o endereço no ultimo espaço encontrado
-            char* spaceIndex = strrchr(pratos[j].descricao, ' ');
+          /*Tirando o scanf do nome do restaurante pois
+          ele pode conter espaços*/
+        //scanf("%d %49s", &restaurantes[i].codigo, restaurantes[i].nome);
+        
+        scanf("%i", &restaurantes[i].codigo);
+        getchar();
+
+        fgets(restaurantes[i].nome, MAX_STRING_LENGTH, stdin);
+        
+         //Tirando o "\n" do local do ultimo caractere
+        tirarNovaLinhaLastIndex(restaurantes[i].nome);
+
+        printf("Cadastre codigo do prato, codigo do restaurante, descricao e preco dos pratos do restaurante %s:\n", restaurantes[i].nome);
+
+        for (int j = 0; j < numeroPratosPorRestaurante; j++) {
+
+            /*Tirando o scanf da descrição pois 
+              ela pode conter espaços*/
+            //scanf("%d %d %49s %f", &pratos[j].codigoPrato, &pratos[j].codigoRest, pratos[j].descricao, &pratos[j].preco);
+
+            int indexPrato = i * numeroPratosPorRestaurante + j;
+
+            scanf("%d %d", &pratos[indexPrato].codigoPrato, &pratos[indexPrato].codigoRest);
+            getchar();
+
+             fgets(pratos[indexPrato].descricao, MAX_STRING_LENGTH, stdin);
+            
+            /*Pegando a última ocorrência do
+              caractere de espaço*/
+
+            char* spaceIndex = strrchr(pratos[indexPrato].descricao, ' ');
+            
+            /*Limitando a descrição até o ultimo caractere de espaço.
+              Depois dele, é o preço do prato*/
 
             *spaceIndex = '\0';
-            
+
             char precoStr[16];
             strcpy(precoStr, spaceIndex+1);
 
-            sscanf(precoStr, "%f", &pratos[j].preco);
-    }
+            sscanf(precoStr, "%f", &pratos[indexPrato].preco);
+        }
     }
 }
 
+int findIndexOfRestaurante(Restaurante restaurante) {
+    for(int i = 0; i < NUM_RESTAURANTES; i++) {
+        if(restaurante.codigo == restaurantes[i].codigo)
+            return i;
+    }
+    return -1;
+}
 
+//função de mostrar pratos do restaurante
+void mostrarPratos(Restaurante restaurante) {
+    printf("\nPratos disponiveis no restaurante %s:\n", restaurante.nome);
+    for (int j = 0; j < NUM_PRATOS_POR_RESTAURANTE; j++) {
+        int restauranteIndex = findIndexOfRestaurante(restaurante);
 
-int main(){
+        if(restauranteIndex != -1) {
+            Comidas prato = pratos[restauranteIndex * NUM_PRATOS_POR_RESTAURANTE + j];
+            printf("%d - %s - R$%.2f\n", prato.codigoPrato, prato.descricao, prato.preco);
+        }
+    }
+}
 
-    Restaurante restaurantes[NUM_RESTAURANTES];
-    Comidas pratos[NUM_PRATOS_POR_RESTAURANTE];
-
+//função da tela de login e menu de opcoes
+int main() {
+    setlocale(LC_ALL, "Portuguese_Brazil");
+    int codigoRestaurante, opcao, pratoEscolhido;
 
     mostrarCabecalho();
-    add_restaurante_e_pratos(restaurantes, pratos, NUM_RESTAURANTES, NUM_PRATOS_POR_RESTAURANTE);
-     
+    add_restaurantes_e_pratos(restaurantes, pratos, NUM_RESTAURANTES, NUM_PRATOS_POR_RESTAURANTE);
+
+    //loop de login 
+    while (1) {
+        printf("LOGIN UAIFOOD RESTAURANTE\n");
+        printf("Digite o codigo do restaurante (ou um numero negativo para sair):\n");
+        scanf("%d", &codigoRestaurante);
+
+        if (codigoRestaurante < 0) {
+            break; //Sair 
+        }
+        //Ver se o restaurante existe
+        int restauranteEncontrado = 0, i;
+        for (i = 0; i < NUM_RESTAURANTES; i++) {
+            if (restaurantes[i].codigo == codigoRestaurante) {
+                restauranteEncontrado = 1;
+                break;
+            }
+        }
+
+        if (!restauranteEncontrado) {
+            printf("Restaurante nao encontrado. Tente novamente.\n");
+            continue; //volta para o inicio do loop
+        }
+
+        //menu de opcoes
+        while (1) {
+            printf("%s - Menu de Opcoes\n", restaurantes[i].nome);
+            printf("1 - Mostrar pratos\n");
+            printf("0 - Logout\n");
+            scanf("%d", &opcao);
+
+            if (opcao == 0) {
+                break; // Logout
+            } else if (opcao == 1) {
+                mostrarPratos(restaurantes[i]);
+
+                //escolher prato
+                printf("0 - Voltar ao menu anterior\n");
+                scanf("%d", &pratoEscolhido);
+                if (pratoEscolhido == 0) {
+                    continue; //voltar para o outro menu
+                }
+
+                //mostrar detalhes do prato escolhido
+                int j;
+                for (j = 0; j < NUM_RESTAURANTES * NUM_PRATOS_POR_RESTAURANTE; j++) {
+                    if (pratos[j].codigoPrato == pratoEscolhido && pratos[j].codigoRest == restaurantes[i].codigo) {
+                        printf("Codigo do prato: %d\n", pratos[j].codigoPrato);
+                        printf("Codigo do restaurante: %d\n", restaurantes[i].codigo);
+                        printf("Nome do Prato: %s\n", pratos[j].descricao);
+                        printf("Preco: %.2f\n", pratos[j].preco);
+                        break;
+                    }
+                }
+                if (j == NUM_RESTAURANTES * NUM_PRATOS_POR_RESTAURANTE) {
+                    printf("Prato nao encontrado.\n");
+                }
+            }
+        }
+    }
+
+    return 0;
 }
-   
