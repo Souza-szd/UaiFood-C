@@ -73,7 +73,7 @@ Comidas pratos[NUM_RESTAURANTES * NUM_PRATOS_POR_RESTAURANTE];
 void mostrarCabecalho() {
     printf("**************************************************\n");
     printf("uaiFood - Restaurante\n");
-    printf("**************************************************\n");
+    printf("**************************************************");
 }
 
 void tirarNovaLinhaLastIndex(char* str) {
@@ -84,6 +84,7 @@ void tirarNovaLinhaLastIndex(char* str) {
 void add_restaurantes_e_pratos(Restaurante restaurantes[], Comidas pratos[], int numeroRestaurantes, int numeroPratosPorRestaurante) {
     for (int i = 0; i < numeroRestaurantes; i++) {
         printf("\nCadastre o codigo e nome do restaurante %d:\n", i + 1);
+
         
           /*Tirando o scanf do nome do restaurante pois
           ele pode conter espaços*/
@@ -97,7 +98,7 @@ void add_restaurantes_e_pratos(Restaurante restaurantes[], Comidas pratos[], int
          //Tirando o "\n" do local do ultimo caractere
         tirarNovaLinhaLastIndex(restaurantes[i].nome);
 
-        printf("\nCadastre codigo do prato, codigo do restaurante, descricao e preco dos pratos do restaurante %s:\n", restaurantes[i].nome);
+        printf("Cadastre codigo do prato, codigo do restaurante, descricao e preco dos pratos do restaurante %s:\n", restaurantes[i].nome);
 
         for (int j = 0; j < numeroPratosPorRestaurante; j++) {
 
@@ -105,15 +106,17 @@ void add_restaurantes_e_pratos(Restaurante restaurantes[], Comidas pratos[], int
               ela pode conter espaços*/
             //scanf("%d %d %49s %f", &pratos[j].codigoPrato, &pratos[j].codigoRest, pratos[j].descricao, &pratos[j].preco);
 
-            scanf("%d %d", &pratos[i * numeroPratosPorRestaurante + j].codigoPrato, &pratos[i * numeroPratosPorRestaurante + j].codigoRest);
+            int indexPrato = i * numeroPratosPorRestaurante + j;
+
+            scanf("%d %d", &pratos[indexPrato].codigoPrato, &pratos[indexPrato].codigoRest);
             getchar();
 
-             fgets(pratos[i * numeroPratosPorRestaurante + j].descricao, MAX_STRING_LENGTH, stdin);
+             fgets(pratos[indexPrato].descricao, MAX_STRING_LENGTH, stdin);
             
             /*Pegando a última ocorrência do
               caractere de espaço*/
 
-            char* spaceIndex = strrchr(pratos[i * numeroPratosPorRestaurante + j].descricao, ' ');
+            char* spaceIndex = strrchr(pratos[indexPrato].descricao, ' ');
             
             /*Limitando a descrição até o ultimo caractere de espaço.
               Depois dele, é o preço do prato*/
@@ -123,17 +126,29 @@ void add_restaurantes_e_pratos(Restaurante restaurantes[], Comidas pratos[], int
             char precoStr[16];
             strcpy(precoStr, spaceIndex+1);
 
-            sscanf(precoStr, "%f", &pratos[i * numeroPratosPorRestaurante + j].preco);
+            sscanf(precoStr, "%f", &pratos[indexPrato].preco);
         }
     }
+}
+
+int findIndexOfRestaurante(Restaurante restaurante) {
+    for(int i = 0; i < NUM_RESTAURANTES; i++) {
+        if(restaurante.codigo == restaurantes[i].codigo)
+            return i;
+    }
+    return -1;
 }
 
 //função de mostrar pratos do restaurante
 void mostrarPratos(Restaurante restaurante) {
     printf("\nPratos disponiveis no restaurante %s:\n", restaurante.nome);
     for (int j = 0; j < NUM_PRATOS_POR_RESTAURANTE; j++) {
-        Comidas prato = pratos[restaurante.codigo * NUM_PRATOS_POR_RESTAURANTE + j];
-        printf("%d - %s - R$%.2f\n", prato.codigoPrato, prato.descricao, prato.preco);
+        int restauranteIndex = findIndexOfRestaurante(restaurante);
+
+        if(restauranteIndex != -1) {
+            Comidas prato = pratos[restauranteIndex * NUM_PRATOS_POR_RESTAURANTE + j];
+            printf("%d - %s - R$%.2f\n", prato.codigoPrato, prato.descricao, prato.preco);
+        }
     }
 }
 
@@ -147,7 +162,7 @@ int main() {
 
     //loop de login 
     while (1) {
-        printf("\nLOGIN UAIFOOD RESTAURANTE\n");
+        printf("LOGIN UAIFOOD RESTAURANTE\n");
         printf("Digite o codigo do restaurante (ou um numero negativo para sair):\n");
         scanf("%d", &codigoRestaurante);
 
