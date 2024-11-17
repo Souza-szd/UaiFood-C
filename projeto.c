@@ -6,84 +6,45 @@
 #include <locale.h>
 
 
-
-
-/*1. 
-Todas as funções que serão necessárias para o trabalho:
-
-Funções de Exibição e Interface
-mostrarCabecalho(): Exibe o cabeçalho do programa.
-mostrarMenuPrincipal(): Exibe o menu principal após o login com opções para o restaurante, como "Mostrar pratos" e "Logout".
-mostrarMenuLogin(): Exibe a tela de login, onde o usuário insere o código do restaurante.
-mostrarPratosMenu(Restaurante restaurante): Mostra o menu de pratos do restaurante selecionado, listando os pratos e permitindo que o usuário selecione um deles.
-mostrarDetalhesPrato(Prato prato): Exibe os detalhes de um prato específico selecionado pelo usuário.
-
-
-2. Funções de Cadastro
-cadastrarRestaurantes(Restaurante restaurantes[]): Solicita ao usuário os dados dos restaurantes e armazena-os no array de Restaurante.
-cadastrarPratos(Prato pratos[], Restaurante restaurantes[]): Solicita os dados dos pratos e os armazena no array de Prato, associando cada prato a um restaurante.
-
-
-3. Funções de Login e Navegação
-loginRestaurante(Restaurante restaurantes[], int numRestaurantes): Lê o código do restaurante inserido pelo usuário e verifica se ele existe. Retorna o índice do restaurante logado ou -1 caso o código seja inválido.
-menuRestaurante(Restaurante restaurante, Prato pratos[], int numPratos): Gerencia o menu do restaurante após o login, com opções como "Mostrar pratos" e "Logout".
-
-
-4. Funções de Exibição de Dados
-mostrarRestaurantes(Restaurante restaurantes[], int numRestaurantes): Lista todos os restaurantes cadastrados, útil para visualização geral.
-mostrarPratos(Restaurante restaurante, Prato pratos[], int numPratos): Lista todos os pratos de um restaurante específico.
-mostrarDetalhesPratoPorCodigo(int codigoPrato, int codigoRestaurante, Prato pratos[], int numPratos): Busca um prato pelo código e exibe seus detalhes.
-
-
-5. Funções de Utilidade e Organização
-ordenarRestaurantesPorCodigo(Restaurante restaurantes[], int numRestaurantes): Ordena os restaurantes pelo código para facilitar a busca e visualização.
-ordenarPratosPorCodigo(Prato pratos[], int numPratos): Ordena os pratos por código para exibir a lista em uma ordem organizada.
-buscarRestaurantePorCodigo(int codigo, Restaurante restaurantes[], int numRestaurantes): Faz uma busca pelo restaurante com o código fornecido e retorna o índice ou -1 caso não seja encontrado.
-buscarPratoPorCodigo(int codigoPrato, int codigoRestaurante, Prato pratos[], int numPratos): Busca um prato pelo código e retorna seu índice para facilitar a exibição de detalhes.
-
-
-6. Função Principal do Programa
-main(): Chama as funções na ordem correta para o fluxo do programa (cadastro, login, exibição do menu, e exibição dos pratos e detalhes).
-*/
-
-//criar struct para cada restaurante, com código e nome
+//Constantes que servem apenas para o inicio do programa
 #define NUM_RESTAURANTES 3
 #define NUM_PRATOS_POR_RESTAURANTE 4
+#define NUM_PRATOS NUM_RESTAURANTES*NUM_PRATOS_POR_RESTAURANTE
 
-
+//Tamanho máximo para qualquer string do programa
+#define MAX_STRING_LENGTH 50
 
 typedef struct {
     int codigo;
-    char nome[50];
-}Restaurante;
+    char nome[MAX_STRING_LENGTH];
+} Restaurante;
 
 typedef struct {
     int codigoPrato;
     int codigoRest;
-    char descricao[50];
+    char descricao[MAX_STRING_LENGTH];
     float preco;
-}Comidas;
+} Prato;
 
 Restaurante restaurantes[NUM_RESTAURANTES];
-Comidas pratos[NUM_RESTAURANTES * NUM_PRATOS_POR_RESTAURANTE];
+Prato pratos[NUM_PRATOS];
 
-#define MAX_STRING_LENGTH 50
+void removeNewLineFromStrEnd(char* str);
 
-//função para cabeçalho
+int findIndexOfRestByCode(int codigoRestaurante);
+int findIndexOfRest(Restaurante restaurante);
+
+//Função para cabeçalho
 void mostrarCabecalho() {
     printf("**************************************************\n");
     printf("uaiFood - Restaurante\n");
-    printf("**************************************************");
-}
-
-void tirarNovaLinhaLastIndex(char* str) {
-    str[strlen(str) - 1] = '\0';
+    printf("**************************************************\n");
 }
 
 //função adicionar restaurante
-void add_restaurantes_e_pratos(Restaurante restaurantes[], Comidas pratos[], int numeroRestaurantes, int numeroPratosPorRestaurante) {
+void add_restaurantes_e_pratos(Restaurante restaurantes[], Prato pratos[], int numeroRestaurantes, int numeroPratosPorRestaurante) {
     for (int i = 0; i < numeroRestaurantes; i++) {
-        printf("\nCadastre o codigo e nome do restaurante %d:\n", i + 1);
+        printf("\nCadastre o codigo e o nome do restaurante %d:\n", i + 1);
 
         
           /*Tirando o scanf do nome do restaurante pois
@@ -96,9 +57,9 @@ void add_restaurantes_e_pratos(Restaurante restaurantes[], Comidas pratos[], int
         fgets(restaurantes[i].nome, MAX_STRING_LENGTH, stdin);
         
          //Tirando o "\n" do local do ultimo caractere
-        tirarNovaLinhaLastIndex(restaurantes[i].nome);
+        removeNewLineFromStrEnd(restaurantes[i].nome);
 
-        printf("Cadastre codigo do prato, codigo do restaurante, descricao e preco dos pratos do restaurante %s:\n", restaurantes[i].nome);
+        printf("\nCadastre o codigo do prato, codigo do restaurante, descricao e preco dos pratos do restaurante %s:\n", restaurantes[i].nome);
 
         for (int j = 0; j < numeroPratosPorRestaurante; j++) {
 
@@ -131,40 +92,66 @@ void add_restaurantes_e_pratos(Restaurante restaurantes[], Comidas pratos[], int
     }
 }
 
-int findIndexOfRestaurante(Restaurante restaurante) {
-    for(int i = 0; i < NUM_RESTAURANTES; i++) {
-        if(restaurante.codigo == restaurantes[i].codigo)
-            return i;
-    }
-    return -1;
-}
-
 //função de mostrar pratos do restaurante
 void mostrarPratos(Restaurante restaurante) {
     printf("\nPratos disponiveis no restaurante %s:\n", restaurante.nome);
     for (int j = 0; j < NUM_PRATOS_POR_RESTAURANTE; j++) {
-        int restauranteIndex = findIndexOfRestaurante(restaurante);
+        int restauranteIndex = findIndexOfRest(restaurante);
 
         if(restauranteIndex != -1) {
-            Comidas prato = pratos[restauranteIndex * NUM_PRATOS_POR_RESTAURANTE + j];
-            printf("%d - %s - R$%.2f\n", prato.codigoPrato, prato.descricao, prato.preco);
+            int pratoIndex = restauranteIndex * NUM_PRATOS_POR_RESTAURANTE + j;
+            Prato prato = pratos[pratoIndex];
+            if (prato.codigoPrato != -1){
+                printf("%d - %s - R$%.2f\n", prato.codigoPrato, prato.descricao, prato.preco);
+            }
         }
     }
 }
 
+// Função para renomear restaurante
+void renomearRestaurante(Restaurante *restaurante) {
+    char novo_nome[MAX_STRING_LENGTH];
+    getchar();
+    printf("Digite o novo nome: \n");
+    fgets(novo_nome, MAX_STRING_LENGTH, stdin);
+    removeNewLineFromStrEnd(novo_nome);  // Remove o '\n' após final de fgets
+
+    strcpy(restaurante->nome, novo_nome);
+
+    printf("O novo nome eh: %s\n", restaurante->nome);
+}
+
+
+void renomearPrato (Prato *prato){
+    char novo_nome[MAX_STRING_LENGTH];
+    getchar();
+    printf ("Digite o novo nome: ");
+    fgets(novo_nome, MAX_STRING_LENGTH, stdin);
+    removeNewLineFromStrEnd(novo_nome); //remove o \n após o final do fgets
+
+    strcpy(prato->descricao, novo_nome);
+
+    printf("O novo nome e: %s\n", prato->descricao);
+}
+
+
+
+
 //função da tela de login e menu de opcoes
 int main() {
     setlocale(LC_ALL, "Portuguese_Brazil");
-    int codigoRestaurante, opcao, pratoEscolhido;
+    int codigoRestaurante, opcao, pratoEscolhido, restauranteEscolhido, index_restaurante;
 
     mostrarCabecalho();
     add_restaurantes_e_pratos(restaurantes, pratos, NUM_RESTAURANTES, NUM_PRATOS_POR_RESTAURANTE);
 
     //loop de login 
     while (1) {
-        printf("LOGIN UAIFOOD RESTAURANTE\n");
-        printf("Digite o codigo do restaurante (ou um numero negativo para sair):\n");
+        voltaraomenu:
+        printf("\nLOGIN UAIFOOD RESTAURANTE\n");
+        printf("\nDigite o codigo do restaurante (ou um numero negativo para sair):\n");
         scanf("%d", &codigoRestaurante);
+        index_restaurante = findIndexOfRestByCode(codigoRestaurante);
 
         if (codigoRestaurante < 0) {
             break; //Sair 
@@ -179,46 +166,92 @@ int main() {
         }
 
         if (!restauranteEncontrado) {
-            printf("Restaurante nao encontrado. Tente novamente.\n");
+            printf("\nRestaurante nao encontrado. Tente novamente.\n");
             continue; //volta para o inicio do loop
         }
 
         //menu de opcoes
         while (1) {
+            
             printf("%s - Menu de Opcoes\n", restaurantes[i].nome);
-            printf("1 - Mostrar pratos\n");
+            printf("1 - Renomear\n");
+            printf("2 - Deletar\n");
+            printf("3 - Mostrar pratos\n");
             printf("0 - Logout\n");
             scanf("%d", &opcao);
 
-            if (opcao == 0) {
-                break; // Logout
-            } else if (opcao == 1) {
-                mostrarPratos(restaurantes[i]);
+            if (opcao == 0) { //na etapa 2, a alteração deve ser feita aqui
+                break; // Logout 
+            } else if (opcao == 1) { //renomear
+                renomearRestaurante(&restaurantes[i]);
 
-                //escolher prato
+
+            }else if(opcao==2){ // deletar restaurante
+                restaurantes[index_restaurante].codigo = -1;
+                
+                //Deletar o nome do restaurante
+                restaurantes[index_restaurante].nome[0]= '\0';
+
+                printf("Restaurante deletado com sucesso.\n");
+
+                goto voltaraomenu;
+
+            }else if (opcao==3){
+                mostrarPratos(restaurantes[i]);
                 printf("0 - Voltar ao menu anterior\n");
                 scanf("%d", &pratoEscolhido);
-                if (pratoEscolhido == 0) {
-                    continue; //voltar para o outro menu
-                }
 
-                //mostrar detalhes do prato escolhido
-                int j;
-                for (j = 0; j < NUM_RESTAURANTES * NUM_PRATOS_POR_RESTAURANTE; j++) {
-                    if (pratos[j].codigoPrato == pratoEscolhido && pratos[j].codigoRest == restaurantes[i].codigo) {
-                        printf("Codigo do prato: %d\n", pratos[j].codigoPrato);
-                        printf("Codigo do restaurante: %d\n", restaurantes[i].codigo);
-                        printf("Nome do Prato: %s\n", pratos[j].descricao);
-                        printf("Preco: %.2f\n", pratos[j].preco);
-                        break;
-                    }
-                }
-                if (j == NUM_RESTAURANTES * NUM_PRATOS_POR_RESTAURANTE) {
-                    printf("Prato nao encontrado.\n");
+                //Ver detalhes de cada prato ou ir para o menu anterior
+                if (pratoEscolhido==0){
+                    continue; //voltar ao menu anterior
+                }else if (pratoEscolhido != 0){
+                    int index_prato = (index_restaurante*4) + pratoEscolhido -1;
+                    //printf("nome_do_prato- Menu de opções") //nome do prato depende do restaurante e do número do prato
+                    printf("1 - Renomear\n");
+                    printf("2 - Alterar preco\n");
+                    printf("3 - Deletar\n");
+                    printf("0 - Voltar ao menu anterior\n\n");
+                    int aux; //essa variavel vai ajudar a ler com função o usuárioi vai escolher entre renomear e etc.
+                    scanf("%d", &aux);
+                    if (aux == 0) {
+                        continue; //voltar para o outro menu
+                    } else if(aux == 1){
+                        renomearPrato(&pratos[index_prato]);
+                    } else if (aux == 2){ //Alterar preço do prato
+                        float novo_preco;
+                        printf("Digite o novo preco: \n");
+                        scanf("%f", &novo_preco);
+                        index_restaurante = findIndexOfRestByCode(codigoRestaurante);
+                        pratos[index_prato].preco = novo_preco;
+                        //dentro do colchetes tem que somar o numero do restaurante por conta da posição do prato no vetor
+                    } else if(aux==3){ //deletar
+                        pratos[index_prato].codigoPrato = -1;
+                        pratos[index_prato].codigoRest = -1;
+                        pratos[index_prato].preco = -1;
+                        pratos[index_prato].descricao[0]= '\0';
+                    }    
+
                 }
             }
+
         }
     }
 
     return 0;
+}
+
+void removeNewLineFromStrEnd(char* str) {
+    str[strlen(str) - 1] = '\0';
+}
+
+int findIndexOfRestByCode(int codigoRestaurante) {
+    for(int i = 0; i < NUM_RESTAURANTES; i++) {
+        if(codigoRestaurante == restaurantes[i].codigo)
+            return i;
+    }
+    return -1;
+}
+
+int findIndexOfRest(Restaurante restaurante) {
+    return findIndexOfRestByCode(restaurante.codigo);
 }
