@@ -30,7 +30,6 @@ Prato pratos[NUM_PRATOS];
 void removeNewLineFromStrEnd(char* str);
 
 int findIndexOfRestByCode(int codigoRestaurante);
-int findIndexOfRest(Restaurante restaurante);
 
 //Função para cabeçalho
 void mostrarCabecalho() {
@@ -91,17 +90,19 @@ void add_restaurantes_e_pratos() {
 }
 
 //função de mostrar pratos do restaurante
-void mostrarPratos(Restaurante restaurante) {
-    printf("\nPratos disponiveis no restaurante %s:\n", restaurante.nome);
-    for (int j = 0; j < NUM_PRATOS_POR_RESTAURANTE; j++) {
-        int restauranteIndex = findIndexOfRest(restaurante);
+void mostrarPratos(int codigoRest) {
+    int restIndex = findIndexOfRestByCode(codigoRest);
 
-        if(restauranteIndex != -1) {
-            int pratoIndex = restauranteIndex * NUM_PRATOS_POR_RESTAURANTE + j;
-            Prato prato = pratos[pratoIndex];
-            if (prato.codigoPrato != -1){
-                printf("%d - %s - R$%.2f\n", prato.codigoPrato, prato.descricao, prato.preco);
-            }
+    if(restIndex == -1)
+        return;
+
+    printf("\nPratos disponiveis no restaurante %s:\n", restaurantes[restIndex].nome);
+    for (int j = 0; j < NUM_PRATOS_POR_RESTAURANTE; j++) {
+        
+        int pratoIndex = restIndex * NUM_PRATOS_POR_RESTAURANTE + j;
+        Prato prato = pratos[pratoIndex];
+        if (prato.codigoPrato != -1){
+            printf("%d - %s - R$%.2f\n", prato.codigoPrato, prato.descricao, prato.preco);
         }
     }
 }
@@ -189,7 +190,7 @@ int main() {
                 goto voltaraomenu;
 
             }else if (opcao==3){
-                mostrarPratos(restaurantes[i]);
+                mostrarPratos(restaurantes[i].codigo);
                 printf("0 - Voltar ao menu anterior\n\n");
                 scanf("%d", &pratoEscolhido);
 
@@ -242,8 +243,4 @@ int findIndexOfRestByCode(int codigoRestaurante) {
             return i;
     }
     return -1;
-}
-
-int findIndexOfRest(Restaurante restaurante) {
-    return findIndexOfRestByCode(restaurante.codigo);
 }
