@@ -143,7 +143,7 @@ int main() {
     mostrarCabecalho();
     add_restaurantes_e_pratos(restaurantes, pratos, NUM_RESTAURANTES, NUM_PRATOS_POR_RESTAURANTE);
 
-    //loop de login 
+    //Loop de login 
     while (1) {
         voltaraomenu:
         printf("\nLOGIN UAIFOOD RESTAURANTE\n");
@@ -155,15 +155,9 @@ int main() {
             break; //Sair 
         }
         //Ver se o restaurante existe
-        int restauranteEncontrado = 0, i;
-        for (i = 0; i < NUM_RESTAURANTES; i++) {
-            if (restaurantes[i].codigo == codigoRestaurante) {
-                restauranteEncontrado = 1;
-                break;
-            }
-        }
+        int i = findIndexOfRestByCode(codigoRestaurante);
 
-        if (!restauranteEncontrado) {
+        if (i == -1) {
             printf("\nRestaurante nao encontrado. Tente novamente.\n");
             continue; //volta para o inicio do loop
         }
