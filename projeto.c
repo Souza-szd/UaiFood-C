@@ -123,7 +123,7 @@ void renomearRestaurante(Restaurante *restaurante) {
 void renomearPrato (Prato *prato){
     char novo_nome[MAX_STRING_LENGTH];
     getchar();
-    printf ("Digite o novo nome: ");
+    printf ("%s - Digite o novo nome: ", prato->descricao);
     fgets(novo_nome, MAX_STRING_LENGTH, stdin);
     removeNewLineFromStrEnd(novo_nome); //remove o \n após o final do fgets
 
@@ -165,11 +165,11 @@ int main() {
         //menu de opcoes
         while (1) {
             
-            printf("%s - Menu de Opcoes\n", restaurantes[i].nome);
+            printf("\n%s - Menu de Opcoes\n", restaurantes[i].nome);
             printf("1 - Renomear\n");
             printf("2 - Deletar\n");
             printf("3 - Mostrar pratos\n");
-            printf("0 - Logout\n");
+            printf("0 - Logout\n\n");
             scanf("%d", &opcao);
 
             if (opcao == 0) { //na etapa 2, a alteração deve ser feita aqui
@@ -190,7 +190,7 @@ int main() {
 
             }else if (opcao==3){
                 mostrarPratos(restaurantes[i]);
-                printf("0 - Voltar ao menu anterior\n");
+                printf("0 - Voltar ao menu anterior\n\n");
                 scanf("%d", &pratoEscolhido);
 
                 //Ver detalhes de cada prato ou ir para o menu anterior
@@ -198,7 +198,7 @@ int main() {
                     continue; //voltar ao menu anterior
                 }else if (pratoEscolhido != 0){
                     int index_prato = (index_restaurante*4) + pratoEscolhido -1;
-                    //printf("nome_do_prato- Menu de opções") //nome do prato depende do restaurante e do número do prato
+                    printf("\n%s - Menu de Opcoes\n", pratos[index_prato].descricao);
                     printf("1 - Renomear\n");
                     printf("2 - Alterar preco\n");
                     printf("3 - Deletar\n");
@@ -211,7 +211,7 @@ int main() {
                         renomearPrato(&pratos[index_prato]);
                     } else if (aux == 2){ //Alterar preço do prato
                         float novo_preco;
-                        printf("Digite o novo preco: \n");
+                        printf("\n%s - Digite o novo preco: \n", pratos[index_prato].descricao);
                         scanf("%f", &novo_preco);
                         index_restaurante = findIndexOfRestByCode(codigoRestaurante);
                         pratos[index_prato].preco = novo_preco;
