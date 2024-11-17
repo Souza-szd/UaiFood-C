@@ -43,7 +43,6 @@ void add_restaurantes_e_pratos() {
     for (int i = 0; i < NUM_RESTAURANTES; i++) {
         printf("\nCadastre o codigo e o nome do restaurante %d:\n", i + 1);
 
-        
           /*Tirando o scanf do nome do restaurante pois
           ele pode conter espaços*/
         //scanf("%d %49s", &restaurantes[i].codigo, restaurantes[i].nome);
@@ -138,7 +137,6 @@ void renomearPrato (Prato *prato){
 
 //função da tela de login e menu de opcoes
 int main() {
-    setlocale(LC_ALL, "Portuguese_Brazil");
     int codigoRestaurante, opcao, pratoEscolhido, restauranteEscolhido, index_restaurante;
 
     mostrarCabecalho();
