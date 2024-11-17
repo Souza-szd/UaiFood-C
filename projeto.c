@@ -39,9 +39,9 @@ void mostrarCabecalho() {
     printf("**************************************************\n");
 }
 
-//função adicionar restaurante
-void add_restaurantes_e_pratos(Restaurante restaurantes[], Prato pratos[], int numeroRestaurantes, int numeroPratosPorRestaurante) {
-    for (int i = 0; i < numeroRestaurantes; i++) {
+//Função adicionar restaurante
+void add_restaurantes_e_pratos() {
+    for (int i = 0; i < NUM_RESTAURANTES; i++) {
         printf("\nCadastre o codigo e o nome do restaurante %d:\n", i + 1);
 
         
@@ -54,23 +54,23 @@ void add_restaurantes_e_pratos(Restaurante restaurantes[], Prato pratos[], int n
 
         fgets(restaurantes[i].nome, MAX_STRING_LENGTH, stdin);
         
-         //Tirando o "\n" do local do ultimo caractere
+         //Tirando o "\n" do local do último caractere
         removeNewLineFromStrEnd(restaurantes[i].nome);
 
         printf("\nCadastre o codigo do prato, codigo do restaurante, descricao e preco dos pratos do restaurante %s:\n", restaurantes[i].nome);
 
-        for (int j = 0; j < numeroPratosPorRestaurante; j++) {
+        for (int j = 0; j < NUM_PRATOS_POR_RESTAURANTE; j++) {
 
             /*Tirando o scanf da descrição pois 
               ela pode conter espaços*/
             //scanf("%d %d %49s %f", &pratos[j].codigoPrato, &pratos[j].codigoRest, pratos[j].descricao, &pratos[j].preco);
 
-            int indexPrato = i * numeroPratosPorRestaurante + j;
+            int indexPrato = i * NUM_PRATOS_POR_RESTAURANTE + j;
 
             scanf("%d %d", &pratos[indexPrato].codigoPrato, &pratos[indexPrato].codigoRest);
             getchar();
 
-             fgets(pratos[indexPrato].descricao, MAX_STRING_LENGTH, stdin);
+            fgets(pratos[indexPrato].descricao, MAX_STRING_LENGTH, stdin);
             
             /*Pegando a última ocorrência do
               caractere de espaço*/
@@ -141,7 +141,7 @@ int main() {
     int codigoRestaurante, opcao, pratoEscolhido, restauranteEscolhido, index_restaurante;
 
     mostrarCabecalho();
-    add_restaurantes_e_pratos(restaurantes, pratos, NUM_RESTAURANTES, NUM_PRATOS_POR_RESTAURANTE);
+    add_restaurantes_e_pratos();
 
     //Loop de login 
     while (1) {
