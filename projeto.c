@@ -129,7 +129,7 @@ void renomearPrato (Prato *prato){
 
     strcpy(prato->descricao, novo_nome);
 
-    printf("O novo nome e: %s\n", prato->descricao);
+    printf("O novo nome eh: %s\n", prato->descricao);
 }
 
 
