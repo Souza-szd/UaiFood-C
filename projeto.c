@@ -5,8 +5,6 @@
 #include <ctype.h>
 #include <locale.h>
 
-
-//Constantes que servem apenas para o inicio do programa
 #define NUM_RESTAURANTES 3
 #define NUM_PRATOS_POR_RESTAURANTE 4
 #define NUM_PRATOS NUM_RESTAURANTES*NUM_PRATOS_POR_RESTAURANTE
