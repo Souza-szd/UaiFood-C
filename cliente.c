@@ -66,9 +66,9 @@ void mostrarRestaurantes() {
 }
 
 float resumir_retornarPreco(char* nomeCliente) {
-    printf("\n");
+    printf("**************************************************\n");
     printf("Resumo do Pedido - %s\n", nomeCliente);
-    printf("\n\n");
+    printf("**************************************************");
 
     float precoTotal = 0;
     int numEntregas = 0, restsIncluded[NUM_RESTAURANTES];
@@ -77,25 +77,29 @@ float resumir_retornarPreco(char* nomeCliente) {
         restsIncluded[i] = -2;
     }
 
-    for(int i = 0; i < numPedidos; i++) {
-        int restIndex = findIndexOfRestByCode(pedidos[i].codigoRest);
-        int pratoIndex = pedidos[i].indexPrato;
+    for(int j = 0; j < NUM_RESTAURANTES; j++) {
+        for(int i = 0; i < numPedidos; i++) {
+            if(pedidos[i].codigoRest == restaurantes[j].codigo) {
+                int restIndex = findIndexOfRestByCode(pedidos[i].codigoRest);
+                int pratoIndex = pedidos[i].indexPrato;
 
-        if(!arrayContainsValue(restsIncluded, NUM_RESTAURANTES, pedidos[i].codigoRest)) {
-            restsIncluded[numEntregas] = pedidos[i].codigoRest;
-            numEntregas++;
+                if(!arrayContainsValue(restsIncluded, NUM_RESTAURANTES, pedidos[i].codigoRest)) {
+                    restsIncluded[numEntregas] = pedidos[i].codigoRest;
+                    numEntregas++;
 
-            printf("%s\n", restaurantes[restIndex].nome);
+                    printf("\n%s\n", restaurantes[restIndex].nome);
+                }
+
+                float precoPedido = (float)pedidos[i].quantidade * pratos[pratoIndex].preco;
+                precoTotal += precoPedido;
+                printf("%ix %s = R$%.2f\n", pedidos[i].quantidade, pratos[pratoIndex].descricao, precoPedido);
+            }
         }
-
-        float precoPedido = (float)pedidos[i].quantidade * pratos[pratoIndex].preco;
-        precoTotal += precoPedido;
-        printf("%ix %s = R$%.2f\n\n", pedidos[i].quantidade, pratos[pratoIndex].descricao, precoPedido);
     }
 
     precoTotal += numEntregas*4.99f;
 
-    printf("Taxa de Entrega x %i = R$%.2f\n", numEntregas, numEntregas*4.99f);
+    printf("\nTaxa de Entrega x %i = R$%.2f\n", numEntregas, numEntregas*4.99f);
     printf("---------------------------------------------------------------------\n");
     printf("TOTAL DO PEDIDO = R$%.2f\n\n", precoTotal);
 }
@@ -157,6 +161,11 @@ int pagamento(){
     printf ("1 - PIX\n2 - Dinheiro\n3 - Cartao de Credito\n4 - Cartao de Debito\n\n");
 
     scanf("%i", &formaDePagamento);
+
+    free(pedidos);
+    pedidos = NULL;
+    numPedidos = 0;
+
     return formaDePagamento;
 }
 
@@ -221,6 +230,7 @@ int main() {
             
             printf("\nBem-vindo %s - Selecione o restaurante:\n", clientes[i].nome);
             mostrarRestaurantes();
+            printf(" 0 - Fechar Pedido\n");
             printf("-1 - Logout\n\n");
             scanf("%d", &opcao);
 
@@ -228,6 +238,8 @@ int main() {
 
             if (opcao == -1) {
                 free(pedidos);
+                numPedidos = 0;
+                pedidos = NULL;
                 break; // Logout 
             } else if (restIndex >= 0 && restIndex < NUM_RESTAURANTES) {
                 
@@ -276,10 +288,14 @@ int main() {
                     goto voltaraospratos;
 
                 } else {
-                    resumir_retornarPreco(clientes[i].nome);
+                    float preco = resumir_retornarPreco(clientes[i].nome);
                     int formaDePagamento = pagamento();
                     continue;
                 }
+            } else {
+                float preco = resumir_retornarPreco(clientes[i].nome);
+                int formaDePagamento = pagamento();
+                continue;
             }
 
         }
