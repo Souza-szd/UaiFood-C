@@ -169,6 +169,11 @@ int pagamento(){
     return formaDePagamento;
 }
 
+void fecharPedido(char nomeCliente[]) {
+    float preco = resumir_retornarPreco(nomeCliente);
+    int formaDePagamento = pagamento();
+}
+
 //função de mostrar pratos do restaurante
 void mostrarPratos(int codigoRest) {
     int restIndex = findIndexOfRestByCode(codigoRest);
@@ -288,13 +293,11 @@ int main() {
                     goto voltaraospratos;
 
                 } else {
-                    float preco = resumir_retornarPreco(clientes[i].nome);
-                    int formaDePagamento = pagamento();
+                    fecharPedido(clientes[i].nome);
                     continue;
                 }
             } else {
-                float preco = resumir_retornarPreco(clientes[i].nome);
-                int formaDePagamento = pagamento();
+                fecharPedido(clientes[i].nome);
                 continue;
             }
 
