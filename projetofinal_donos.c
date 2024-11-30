@@ -10,7 +10,11 @@ int numPratos = 0;
 
 //Tamanho máximo para qualquer string do programa
 #define MAX_STRING_LENGTH 50
-#define MAX_LINE_LENGTH MAX_STRING_LENGTH*3
+
+#define restsTxt "restaurantes.txt"
+#define pratosTxt "pratosTxt"
+#define pedidosTxt "pedidos.txt"
+#define clientesTxt "clientes.txt"
 
 typedef struct {
     int codigo;
@@ -27,15 +31,21 @@ typedef struct {
 Restaurante* restaurantes = NULL;
 Prato* pratos = NULL;
 
+void allocerror();
+
 void removeNewLineFromStrEnd(char* str);
 
 int findIndexOfRestByCode(int codigoRestaurante);
+
+int createNewRest();
+int saveRests();
+int readRests();
 
 //Função para cabeçalho
 void mostrarCabecalho() {
     printf("\n**************************************************\n");
     printf("uaiFood - Restaurante\n");
-    printf("**************************************************\n");
+    printf("**************************************************\n\n");
 }
 
 //Função adicionar restaurante
@@ -118,13 +128,15 @@ void mostrarPratos(int codigoRest) {
 void renomearRestaurante(Restaurante *restaurante) {
     char novo_nome[MAX_STRING_LENGTH];
     getchar();
-    printf("Digite o novo nome: \n");
+    printf("\nDigite o novo nome: \n");
     fgets(novo_nome, MAX_STRING_LENGTH, stdin);
     removeNewLineFromStrEnd(novo_nome);  // Remove o '\n' após final de fgets
 
     strcpy(restaurante->nome, novo_nome);
 
-    printf("O novo nome eh: %s\n", restaurante->nome);
+    printf("\nO novo nome eh: %s\n", restaurante->nome);
+
+    saveRests();
 }
 
 
@@ -140,10 +152,6 @@ void renomearPrato (Prato *prato){
     printf("O novo nome eh: %s\n", prato->descricao);
 }
 
-void criarRest() {
-
-}
-
 //função da tela de login e menu de opcoes
 void login() {
     int codigoRestaurante, opcao, pratoEscolhido, restauranteEscolhido, index_restaurante;
@@ -151,50 +159,18 @@ void login() {
     mostrarCabecalho();
     //add_restaurantes_e_pratos();
 
-    FILE* fRests;
+    int readStatusCode = readRests();
 
-    fRests = fopen("restaurantes.txt", "a+");
-
-    if(feof(fRests)) {
-        printf("\nNenhum Restaurante Registrado!\n\n");
-        return;
-    }
-
-    char line[MAX_LINE_LENGTH];
-    fgets(line, MAX_LINE_LENGTH, fRests);
-    sscanf(line, "%i", &numRests);
-
-    restaurantes = (Restaurante*)malloc(numRests*sizeof(Restaurante));
-
-    int i = 0;
-
-    while(!feof(fRests)) {
-
-        if(i >= numRests) {
-            printf("Erro na leitura dos dados do arquivo \"restaurante.txt\"!\n\n");
-            return;
-        }
-
-        fgets(line, MAX_LINE_LENGTH, fRests);
-
-        printf("\nline: %s\n", line);
-        sscanf(line, "%i", &restaurantes[i].codigo);
-
-        char* firstSpacePtr = strchr(line, ' ');
-
-        char restName[MAX_STRING_LENGTH] = "";
-        strcat(restName, firstSpacePtr+1);
-        
-        strcpy(restaurantes[i].nome, restName);
-
-        //printf("\nAdded rest with name: %s\nCode: %i\n\n", restName, restaurantes[i].codigo);
-
-        i++;
-    }
+    if(readStatusCode == -1) printf("Nenhum Restaurante Registrado!\n");
+    if(readStatusCode <= 0) return;
 
     //Loop de login 
     while (1) {
         voltaraomenu:
+
+        if(numRests == 0)
+            return;
+
         printf("\nLOGIN UAIFOOD RESTAURANTE\n");
         printf("\nDigite o codigo do restaurante (ou um numero negativo para sair):\n");
         scanf("%d", &codigoRestaurante);
@@ -228,12 +204,21 @@ void login() {
 
 
             }else if(opcao==2){ // deletar restaurante
-                restaurantes[index_restaurante].codigo = -1;
+                //restaurantes[index_restaurante].codigo = -1;
                 
                 //Deletar o nome do restaurante
-                restaurantes[index_restaurante].nome[0]= '\0';
+                //restaurantes[index_restaurante].nome[0]= '\0';
 
-                printf("Restaurante deletado com sucesso.\n");
+                Restaurante lastRest = restaurantes[numRests-1];
+                restaurantes[numRests-1] = restaurantes[index_restaurante];
+                restaurantes[index_restaurante] = lastRest;
+
+                numRests--;
+                restaurantes = (Restaurante*)realloc(restaurantes,numRests*sizeof(Restaurante));
+
+                saveRests();
+
+                printf("\nRestaurante deletado com sucesso.\n");
 
                 goto voltaraomenu;
 
@@ -283,11 +268,11 @@ int main() {
 
     int hasExited = 0;
 
+    readRests();
+
     while(!hasExited) {
 
-        printf("**************************************************\n");
-        printf("uaiFood - Restaurante\n");
-        printf("**************************************************\n\n");
+        mostrarCabecalho();
 
         printf("Selecione a acao desejada:\n");
         printf(" 1 - Criar Restaurante\n");
@@ -296,13 +281,14 @@ int main() {
 
         int option;
         scanf("%i", &option);
+        getchar();
 
         switch(option) {
         case 2:
             login();
             break;
         case 1:
-            criarRest();
+            hasExited = !createNewRest();
             break;
         default:
             hasExited = 1;
@@ -316,7 +302,9 @@ int main() {
 }
 
 void removeNewLineFromStrEnd(char* str) {
-    str[strlen(str) - 1] = '\0';
+    char* newLinePtr = strrchr(str, '\n');
+    if(newLinePtr != NULL)
+        *newLinePtr = '\0';
 }
 
 int findIndexOfRestByCode(int codigoRestaurante) {
@@ -325,4 +313,111 @@ int findIndexOfRestByCode(int codigoRestaurante) {
             return i;
     }
     return -1;
+}
+
+int createNewRest() {
+
+    int newRestCode = 1;
+
+    if(numRests > 0) {
+        int biggestRestCode_i = 0;
+
+        for(int i = 1; i < numRests; i++) {
+            if(restaurantes[i].codigo > restaurantes[biggestRestCode_i].codigo)
+                biggestRestCode_i = i;
+        }
+
+        newRestCode = restaurantes[biggestRestCode_i].codigo + 1;
+    }
+
+    numRests++;
+
+    if(numRests > 1) 
+        restaurantes = (Restaurante*)realloc(restaurantes, numRests*sizeof(Restaurante));
+    else
+        restaurantes = (Restaurante*)malloc(sizeof(Restaurante));
+
+    if(restaurantes == NULL) {
+        allocerror();
+        return 0;
+    }
+
+    restaurantes[numRests-1].codigo = newRestCode;
+
+    char newRestName[MAX_STRING_LENGTH];
+
+    printf("\nCriar novo restaurante - Digite o nome do novo restaurante:\n");
+
+    fgets(restaurantes[numRests-1].nome, MAX_STRING_LENGTH, stdin);
+    removeNewLineFromStrEnd(restaurantes[numRests-1].nome);
+
+    return saveRests();
+
+}
+
+int saveRests() {
+    FILE* fRests = fopen(restsTxt, "w");
+
+    fprintf(fRests, "%i", numRests);
+
+    for(int i = 0; i < numRests; i++) {
+        if(restaurantes[i].codigo != -1)
+            fprintf(fRests, "\n%i %s", restaurantes[i].codigo, restaurantes[i].nome);
+    }
+
+    fclose(fRests);
+
+    return 1;
+}
+
+int readRests() {
+
+    if(restaurantes != NULL) {
+        free(restaurantes);
+    }
+
+    FILE* fRests;
+
+    fRests = fopen(restsTxt, "r");
+
+    fscanf(fRests, "%i", &numRests);
+
+    if(numRests == 0) {
+        return -1;
+    }
+    
+
+    restaurantes = (Restaurante*)malloc(numRests*sizeof(Restaurante));
+
+    if(restaurantes == NULL) {
+        allocerror();
+        return 0;
+    }
+
+    int i = 0;
+
+    while(!feof(fRests)) {
+
+        if(i >= numRests) {
+            fclose(fRests);
+            printf("Erro na leitura dos dados do arquivo \"restaurante.txt\"!\n\n");
+            return 0;
+        }
+
+        fscanf(fRests, "%i", &restaurantes[i].codigo);
+        fgetc(fRests);
+
+        fgets(restaurantes[i].nome, MAX_STRING_LENGTH, fRests);
+        removeNewLineFromStrEnd(restaurantes[i].nome);
+
+        i++;
+    }
+
+    fclose(fRests);
+
+    return 1;
+}
+
+void allocerror() {
+    printf("\nErro de Alocacao!\n\n");
 }
