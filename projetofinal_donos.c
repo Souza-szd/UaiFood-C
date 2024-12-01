@@ -112,6 +112,10 @@ void login() {
 
         printf("\nLOGIN UAIFOOD RESTAURANTE\n");
         printf("\nDigite o codigo do restaurante (ou um numero negativo para sair):\n");
+        for(int i = 0; i < numRests; i++) {
+            printf("%i - %s\n", restaurantes[i].codigo, restaurantes[i].nome);
+        }
+        printf("\n");
         scanf("%d", &codigoRestaurante);
         
         if (codigoRestaurante < 0) {
