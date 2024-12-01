@@ -5,16 +5,14 @@
 #include <ctype.h>
 #include <locale.h>
 
-int numRests = 0;
-int numPratos = 0;
+int numRests = 0,
+numPratos = 0;
 
 //Tamanho máximo para qualquer string do programa
 #define MAX_STRING_LENGTH 50
 
 #define restsTxt "restaurantes.txt"
 #define pratosTxt "pratos.txt"
-#define pedidosTxt "pedidos.txt"
-#define clientesTxt "clientes.txt"
 
 typedef struct {
     int codigo;
@@ -55,69 +53,12 @@ void mostrarCabecalho() {
     printf("**************************************************\n\n");
 }
 
-//Função adicionar restaurante
-void add_restaurantes_e_pratos(FILE* fRests) {
-    for (int i = 0; i < numRests; i++) {
-        printf("\nCadastre o codigo e o nome do restaurante %d:\n", i + 1);
-
-          /*Tirando o scanf do nome do restaurante pois
-          ele pode conter espaços*/
-        //scanf("%d %49s", &restaurantes[i].codigo, restaurantes[i].nome);
-        
-        scanf("%i", &restaurantes[i].codigo);
-        getchar();
-
-        fgets(restaurantes[i].nome, MAX_STRING_LENGTH, stdin);
-        
-         //Tirando o "\n" do local do último caractere
-        removeNewLineFromStrEnd(restaurantes[i].nome);
-
-        printf("\nCadastre o codigo do prato, codigo do restaurante, descricao e preco dos pratos do restaurante %s:\n", restaurantes[i].nome);
-
-        //Definindo NUM_PRATOS_POR_RESTAURANTE temporariamente
-        //para evitar erros de compilação
-        int NUM_PRATOS_POR_RESTAURANTE = 0;
-
-        for (int j = 0; j < NUM_PRATOS_POR_RESTAURANTE; j++) {
-
-            /*Tirando o scanf da descrição pois 
-              ela pode conter espaços*/
-            //scanf("%d %d %49s %f", &pratos[j].codigoPrato, &pratos[j].codigoRest, pratos[j].descricao, &pratos[j].preco);
-
-            int indexPrato = i * NUM_PRATOS_POR_RESTAURANTE + j;
-
-            scanf("%d %d", &pratos[indexPrato].codigoPrato, &pratos[indexPrato].codigoRest);
-            getchar();
-
-            fgets(pratos[indexPrato].descricao, MAX_STRING_LENGTH, stdin);
-            
-            /*Pegando a última ocorrência do
-              caractere de espaço*/
-
-            char* spaceIndex = strrchr(pratos[indexPrato].descricao, ' ');
-            
-            /*Limitando a descrição até o ultimo caractere de espaço.
-              Depois dele, é o preço do prato*/
-
-            *spaceIndex = '\0';
-
-            char precoStr[16];
-            strcpy(precoStr, spaceIndex+1);
-
-            sscanf(precoStr, "%f", &pratos[indexPrato].preco);
-        }
-    }
-}
-
 //função de mostrar pratos do restaurante
 void mostrarPratos(int codigoRest) {
     int restIndex = findIndexOfRestByCode(codigoRest);
 
     if(restIndex == -1)
         return;
-
-    //Definindo NUM_PRATOS_POR_RESTAURANTE temporariamente
-    //para evitar erros de compilação
 
     printf("\nPratos disponiveis no restaurante %s:\n", restaurantes[restIndex].nome);
     for (int j = 0; j < numPratos; j++) {
@@ -129,13 +70,10 @@ void mostrarPratos(int codigoRest) {
 
 // Função para renomear restaurante
 void renomearRestaurante(Restaurante *restaurante) {
-    char novo_nome[MAX_STRING_LENGTH];
     getchar();
     printf("\nDigite o novo nome: \n");
-    fgets(novo_nome, MAX_STRING_LENGTH, stdin);
-    removeNewLineFromStrEnd(novo_nome);  // Remove o '\n' após final de fgets
-
-    strcpy(restaurante->nome, novo_nome);
+    fgets(restaurante->nome, MAX_STRING_LENGTH, stdin);
+    removeNewLineFromStrEnd(restaurante->nome);  // Remove o '\n' após final de fgets
 
     printf("\nO novo nome eh: %s\n", restaurante->nome);
 
@@ -144,13 +82,10 @@ void renomearRestaurante(Restaurante *restaurante) {
 
 
 void renomearPrato (Prato *prato){
-    char novo_nome[MAX_STRING_LENGTH];
     getchar();
     printf ("%s - Digite o novo nome:\n", prato->descricao);
-    fgets(novo_nome, MAX_STRING_LENGTH, stdin);
-    removeNewLineFromStrEnd(novo_nome); //remove o \n após o final do fgets
-
-    strcpy(prato->descricao, novo_nome);
+    fgets(prato->descricao, MAX_STRING_LENGTH, stdin);
+    removeNewLineFromStrEnd(prato->descricao); //remove o \n após o final do fgets
 
     printf("O novo nome eh: %s\n", prato->descricao);
 
@@ -162,7 +97,6 @@ void login() {
     int codigoRestaurante, opcao, pratoEscolhido, restauranteEscolhido, index_restaurante;
 
     mostrarCabecalho();
-    //add_restaurantes_e_pratos();
 
     int readStatusCode = readRests();
 
@@ -203,7 +137,7 @@ void login() {
 
             scanf("%d", &opcao);
 
-            if (opcao == 0) {
+            if (opcao == -1) {
                 break; // Logout 
             } else if (opcao == 1) { //renomear
 
@@ -293,7 +227,6 @@ int main() {
 
         int option;
         scanf("%i", &option);
-        getchar();
 
         switch(option) {
         case 2:
@@ -309,6 +242,9 @@ int main() {
     }
 
     exit(1);
+
+    free(restaurantes);
+    free(pratos);
 
     return 0;
 }
@@ -335,10 +271,19 @@ int findIndexOfPratoByItsCodeAndRestCode(int pratoCode, int restCode) {
     return -1;
 }
 
+void swapRests(Restaurante* r1, Restaurante* r2) {
+    Restaurante tempRest = *r1;
+    *r1 = *r2;
+    *r2 = tempRest;
+}
+
 int deleteRest(int restIndex) {
-    Restaurante lastRest = restaurantes[numRests-1];
-    restaurantes[numRests-1] = restaurantes[restIndex];
-    restaurantes[restIndex] = lastRest;
+
+    int lastIndex = numRests-1;
+
+    for(int i = restIndex+1; i <= lastIndex; i++) {
+        swapRests(&restaurantes[i], &restaurantes[i-1]);
+    }
 
     numRests--;
     restaurantes = (Restaurante*)realloc(restaurantes,numRests*sizeof(Restaurante));
@@ -379,6 +324,7 @@ int createNewRest() {
 
     printf("\nCriar novo restaurante - Digite o nome do novo restaurante:\n");
 
+    getchar();
     fgets(restaurantes[numRests-1].nome, MAX_STRING_LENGTH, stdin);
     removeNewLineFromStrEnd(restaurantes[numRests-1].nome);
 
@@ -445,10 +391,18 @@ int readRests() {
     return 1;
 }
 
+void swapPratos(Prato* p1, Prato* p2) {
+    Prato tempPrato = *p1;
+    *p1 = *p2;
+    *p2 = tempPrato;
+}
+
 int deletePrato(int pratoIndex) {
-    Prato lastPrato = pratos[numPratos-1];
-    pratos[numPratos-1] = pratos[pratoIndex];
-    pratos[pratoIndex] = lastPrato;
+    int lastIndex = numPratos-1;
+
+    for(int i = pratoIndex+1; i <= lastIndex; i++) {
+        swapPratos(&pratos[i], &pratos[i-1]);
+    }
 
     numPratos--;
     pratos = (Prato*)realloc(pratos,numPratos*sizeof(Prato));
