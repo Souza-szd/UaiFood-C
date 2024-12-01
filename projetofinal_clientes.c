@@ -9,6 +9,8 @@
 #define MAX_STRING_LENGTH 50
 #define MAX_LINE_LENGTH 2 * MAX_STRING_LENGTH
 
+#define PEDIDOS_END_SUFFIX "[END]"
+
 typedef struct {
     int codigo;
     char nome[MAX_STRING_LENGTH];
@@ -90,6 +92,46 @@ void renomearCliente(Cliente *cliente) {
     saveClientes();
 }
 
+void getClienteCodeStr(int clienteCode, char* codeStr) {
+    strcpy(codeStr, "[");
+    char tempStr[12];
+    sprintf(tempStr, "%i", clienteCode);
+    strcat(codeStr, tempStr);
+    strcat(codeStr, "]");
+}
+
+int getBiggestPedidoCode() {
+    FILE* fPedidos = fopen(pedidosTxt, "r");
+
+    if(fPedidos == NULL) {
+        printf("\nErro na Abertura do Arquivo \"%s\"!\n", pedidosTxt);
+        return -1;
+    }
+
+    const char PEDIDO_CODE_PREFIX[] = "Codigo do Pedido: ";
+
+    char line[MAX_LINE_LENGTH];
+
+    int biggestPedidoCode = 0;
+
+    while(!feof(fPedidos)) {
+        fgets(line, MAX_LINE_LENGTH, fPedidos);
+
+        //Checando se linha começa com "Codigo do Pedido: "
+        if(!strncmp(line, PEDIDO_CODE_PREFIX, strlen(PEDIDO_CODE_PREFIX))) {
+            int pedidoCode;
+            sscanf(line, "Codigo do Pedido: %i", &pedidoCode);
+
+            if(pedidoCode > biggestPedidoCode)
+                biggestPedidoCode = pedidoCode;
+        }
+    }
+
+    fclose(fPedidos);
+
+    return biggestPedidoCode;
+}
+
 int mostrarHistorico(int clienteCode) {
     FILE* fPedidos = fopen(pedidosTxt, "r");
 
@@ -100,18 +142,21 @@ int mostrarHistorico(int clienteCode) {
 
     printf("\n");
 
+    char codeStr[16];
+    //Definindo codeStr como "[CODIGO_DO_CLIENTE]"
+    getClienteCodeStr(clienteCode, codeStr);
+
     char line[MAX_LINE_LENGTH];
 
     int allowedToPrint = 0;
-
-    const char* endSuffix = "[END]";
 
     int jaFezPeloMenosUmPedido = 0;
 
     while(!feof(fPedidos)) {
         fgets(line, MAX_LINE_LENGTH, fPedidos);
 
-        if(!strncmp(line, endSuffix, strlen(endSuffix))) {
+        //Checando se linha é "[END]"
+        if(!strncmp(line, PEDIDOS_END_SUFFIX, strlen(PEDIDOS_END_SUFFIX))) {
             allowedToPrint = 0;
             continue;
         }
@@ -119,12 +164,7 @@ int mostrarHistorico(int clienteCode) {
         if(allowedToPrint)
             printf("%s", line);
 
-        char codeStr[16] = "[";
-        char tempStr[12];
-        sprintf(tempStr, "%i", clienteCode);
-        strcat(codeStr, tempStr);
-        strcat(codeStr, "]");
-
+        //Checando se linha é "[CODIGO_DO_CLIENTE]"
         if(!strncmp(line, codeStr, strlen(codeStr))) {
             allowedToPrint = 1;
             jaFezPeloMenosUmPedido = 1;
@@ -132,8 +172,10 @@ int mostrarHistorico(int clienteCode) {
     }
 
     if(!jaFezPeloMenosUmPedido) {
-        printf("\nNenhum Pedido Foi Feito Ainda!\n");
+        printf("Nenhum Pedido Foi Feito Ainda!\n");
     }
+
+    fclose(fPedidos);
 
     return 1;
 }
@@ -147,6 +189,11 @@ float resumir_retornarPreco(int clienteIndex) {
 
     char* nomeCliente = clientes[clienteIndex].nome;
 
+    //Definindo numPedidos como o número de pedidos feitos até agora
+    //getNumPedidos();
+
+    int biggestPedidoCode = getBiggestPedidoCode();
+
     printf("\n**************************************************\n");
     printf("Resumo do Pedido - %s\n", nomeCliente);
     printf("**************************************************\n");
@@ -158,6 +205,8 @@ float resumir_retornarPreco(int clienteIndex) {
         restsIncluded[i] = -2;
     }
 
+
+
     FILE* fPedidos = fopen(pedidosTxt, "a");
 
     if(fPedidos == NULL) {
@@ -165,7 +214,10 @@ float resumir_retornarPreco(int clienteIndex) {
         return -1;
     }
 
-    fprintf(fPedidos, "[%i]", clientes[clienteIndex].codigoCliente);
+    fprintf(fPedidos, "\n[%i]\nCodigo do Pedido: %i\n",
+            clientes[clienteIndex].codigoCliente,
+            biggestPedidoCode+1);
+
 
     char line[MAX_LINE_LENGTH];
 
@@ -193,14 +245,14 @@ float resumir_retornarPreco(int clienteIndex) {
 
     precoTotal += numEntregas*4.99f;
 
-    sprintf(line, "\nTaxa de Entrega x %i = R$%.2f\n", numEntregas, numEntregas*4.99f);
+    sprintf(line, "\nTaxa de Entrega x %i = R$%.2f\n\n", numEntregas, numEntregas*4.99f);
     print(fPedidos, line);
-    sprintf(line, "---------------------------------------------------------------------\n");
+    sprintf(line, "TOTAL DO PEDIDO = R$%.2f\n", precoTotal);
     print(fPedidos, line);
-    sprintf(line, "TOTAL DO PEDIDO = R$%.2f\n\n", precoTotal);
+    sprintf(line, "---------------------------------------------------------------------\n\n");
     print(fPedidos, line);
 
-    fprintf(fPedidos,"[END]\n");
+    fprintf(fPedidos,"%s", PEDIDOS_END_SUFFIX);
 
     fclose(fPedidos);
 
@@ -303,7 +355,9 @@ int login() {
                 renomearCliente(&clientes[clienteIndex]);
             } else if (opcao == 2) {
                 deleteCliente(clienteIndex);
-                continue;
+                if(numClientes == 0)
+                    return 1;
+                break;
             } else if (opcao == 3) {
 
                 voltaraosrestaurantes:
@@ -320,7 +374,7 @@ int login() {
                     free(pedidos);
                     numPedidos = 0;
                     pedidos = NULL;
-                    break; // Logout 
+                    continue; // Logout 
                 } else if(opcao == 0) {
                     fecharPedido(clienteIndex);
                     continue;
@@ -461,6 +515,68 @@ int findIndexOfClientByCode(int codigoCliente) {
     return -1;
 }
 
+int deletePedidosOfCliente(int clienteIndex) {
+
+    if(getBiggestPedidoCode() <= 0)
+        return -1;
+
+    FILE* fPedidos = fopen(pedidosTxt, "r");
+
+    char* fileData = NULL;
+    int fileDataSize = 0;
+    char line[MAX_LINE_LENGTH];
+
+    int allowedToRead = 1;
+
+    char clienteCodeStr[16];
+    //Definindo codeStr como "[CODIGO_DO_CLIENTE]"
+    getClienteCodeStr(clientes[clienteIndex].codigoCliente, clienteCodeStr);
+
+    while(!feof(fPedidos)) {
+        fgets(line, MAX_LINE_LENGTH, fPedidos);
+
+        //Checando se line é igual "[CODIGO_DO_CLIENTE]"
+        if(!strncmp(line, clienteCodeStr, strlen(clienteCodeStr))){ 
+            allowedToRead = 0;
+            continue;
+        } 
+        //Checando se line é igual a "[END]" e se allowedToRead é 0
+        else if(!strncmp(line, PEDIDOS_END_SUFFIX, strlen(PEDIDOS_END_SUFFIX)) && !allowedToRead) {
+            allowedToRead = 1;
+            continue;
+        }
+
+        if(allowedToRead) {
+            fileData = (char*)realloc(fileData, fileDataSize+MAX_LINE_LENGTH);
+            
+            if(fileData == NULL) {
+                allocerror();
+                return -1;
+            }
+
+            if(fileDataSize == 0)
+                strcpy(fileData, "");
+            strcat(fileData, line);
+
+            fileDataSize = strlen(fileData)+1;
+            fileData = (char*)realloc(fileData, fileDataSize);
+        }
+    }
+
+    fclose(fPedidos);
+
+    fPedidos = fopen(pedidosTxt, "w");
+
+    //Checando se o ultimo caractere é '\n' e deletando-o
+    if(fileData[strlen(fileData)-1] == '\n')
+        removeNewLineFromStrEnd(fileData);
+
+    fprintf(fPedidos, "%s", fileData);
+
+    fclose(fPedidos);
+    free(fileData);
+}
+
 void swapClientes(Cliente* c1, Cliente* c2) {
     Cliente tempCliente = *c1;
     *c1 = *c2;
@@ -468,6 +584,8 @@ void swapClientes(Cliente* c1, Cliente* c2) {
 }
 
 int deleteCliente(int clienteIndex) {
+
+    deletePedidosOfCliente(clienteIndex);
 
     int lastIndex = numClientes-1;
 
@@ -479,8 +597,6 @@ int deleteCliente(int clienteIndex) {
     clientes = (Cliente*)realloc(clientes,numClientes*sizeof(Cliente));
 
     saveClientes();
-
-    FILE* fPedidos = fopen(pedidosTxt, "w");
 
     printf("\nCliente deletado com sucesso.\n");
 }
@@ -564,7 +680,7 @@ int readClientes() {
 
         if(i >= numClientes) {
             fclose(fClientes);
-            printf("Erro na leitura dos dados do arquivo \"%s\"!\n\n", clientesTxt);
+            printf("\nErro na leitura dos dados do arquivo \"%s\"!\n\n", clientesTxt);
             return 0;
         }
 
@@ -581,51 +697,6 @@ int readClientes() {
 
     return 1;
 }
-
-/*int readPedidos() {
-
-    if(pedidos != NULL) {
-        free(pedidos);
-    }
-
-    FILE* fPedidos = fopen(pedidosTxt, "r");
-
-    fscanf(fPedidos, "%i", &numPedidos);
-
-    if(numPedidos == 0) {
-        return -1;
-    }
-    
-    pedidos = (Pedido*)malloc(numPedidos*sizeof(Pedido));
-
-    if(pedidos == NULL) {
-        allocerror();
-        return 0;
-    }
-
-    int i = 0;
-
-    while(!feof(fPedidos)) {
-
-        if(i >= numPedidos) {
-            fclose(fPedidos);
-            printf("Erro na leitura dos dados do arquivo \"%s\"!\n\n", pedidosTxt);
-            return 0;
-        }
-
-        fscanf(fPedidos, "%i", &pedidos[i].codigo);
-        fgetc(fPedidos);
-
-        fgets(pedidos[i].nome, MAX_STRING_LENGTH, fPedidos);
-        removeNewLineFromStrEnd(pedidos[i].nome);
-
-        i++;
-    }
-
-    fclose(fPedidos);
-
-    return 1;
-}*/
 
 int readRests() {
 
@@ -654,7 +725,7 @@ int readRests() {
 
         if(i >= numRests) {
             fclose(fRests);
-            printf("Erro na leitura dos dados do arquivo \"%s\"!\n\n", restsTxt);
+            printf("\nErro na leitura dos dados do arquivo \"%s\"!\n\n", restsTxt);
             return 0;
         }
 
@@ -699,7 +770,7 @@ int readPratos() {
 
         if(i >= numPratos) {
             fclose(fPratos);
-            printf("Erro na leitura dos dados do arquivo \"%s\"!\n\n", pratosTxt);
+            printf("\nErro na leitura dos dados do arquivo \"%s\"!\n\n", pratosTxt);
             return 0;
         }
 
@@ -711,12 +782,10 @@ int readPratos() {
         
         /*Pegando a última ocorrência do
           caractere de espaço*/
-
         char* lastSpaceIndex = strrchr(pratos[i].descricao, ' ');
             
         /*Limitando a descrição até o ultimo caractere de espaço.
           Depois dele, é o preço do prato*/
-
         *lastSpaceIndex = '\0';
 
         char precoStr[16];
@@ -731,20 +800,6 @@ int readPratos() {
 
     return 1;
 }
-
-/*int savePedidos() {
-    FILE* fPedidos = fopen(pedidosTxt, "w");
-
-    fprintf(fPedidos, "%i", numPedidos);
-
-    for(int i = 0; i < numPedidos; i++) {
-        fprintf(fPedidos, "\n%i %i %s %g", pedidos[i].codigoPrato, pedidos[i].codigoRest, pedidos[i].descricao, pedidos[i].preco);
-    }
-
-    fclose(fPedidos);
-
-    return 1;
-}*/
 
 void allocerror() {
     printf("\nErro de Alocacao!\n\n");
