@@ -323,6 +323,10 @@ int login() {
         voltaraomenu:
         printf("\nLOGIN UAIFOOD PEDIDOS\n");
         printf("\nDigite o codigo do cliente (ou um numero negativo para sair):\n");
+        for(int i = 0; i < numClientes; i++) {
+            printf("%i - %s\n", clientes[i].codigoCliente, clientes[i].nome);
+        }
+        printf("\n");
         scanf("%d", &codigoCliente);
         
         if (codigoCliente < 0) {
