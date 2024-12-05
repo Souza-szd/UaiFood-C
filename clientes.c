@@ -366,7 +366,7 @@ int login() {
 
                 voltaraosrestaurantes:
 
-                printf("\n%s - Novo pedido - Selecione o restaurante:\n", clientes[clienteIndex].nome);
+                printf("\n%s - Novo Pedido - Selecione o restaurante:\n", clientes[clienteIndex].nome);
                 mostrarRestaurantes();
                 printf(" 0 - Fechar Pedido\n");
                 printf("-1 - Logout\n\n");
@@ -385,6 +385,8 @@ int login() {
                 } else if (restIndex >= 0 && restIndex < numRests) {
                     
                     voltaraospratos:
+
+                    readRests();
 
                     printf("\n%s - Pratos - Menu de Opcoes\n", restaurantes[restIndex].nome);
                     if(!mostrarPratos(restaurantes[restIndex].codigo))
@@ -408,15 +410,8 @@ int login() {
                         int quantidade;
                         scanf("%i", &quantidade);
 
-                        if(pedidos == NULL) {
-                            //Primeira alocação
-                            pedidos = (Pedido*)malloc(sizeof(Pedido));
-                        } else {
-                            //Realocação
-                            pedidos = (Pedido*)realloc(pedidos, (numPedidos+1)*sizeof(Pedido));
-                        }
-                        //Verificando se 'pedidos' ainda 
-                        //é NULL ou se virou NULL
+                        pedidos = (Pedido*)realloc(pedidos, (numPedidos+1)*sizeof(Pedido));
+
                         if(pedidos == NULL) {
                             printf("Erro de alocacao!");
                             return 0;
@@ -729,8 +724,7 @@ int readRests() {
 
         if(i >= numRests) {
             fclose(fRests);
-            printf("\nErro na leitura dos dados do arquivo \"%s\"!\n\n", restsTxt);
-            return 0;
+            return 1;
         }
 
         fscanf(fRests, "%i", &restaurantes[i].codigo);
