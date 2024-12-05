@@ -151,6 +151,12 @@ int login() {
                 
                 deleteRest(restIndex);
 
+                for(int i = 0; i < numPratos; i++) {
+                    if(pratos[i].codigoRest == restaurantes[restIndex].codigo) {
+                        deletePrato(i);
+                    }
+                }
+
                 goto voltaraomenu;
 
             }else if (opcao==3){
