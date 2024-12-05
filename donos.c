@@ -101,7 +101,7 @@ int login() {
     int readStatusCode = readRests();
 
     if(readStatusCode == -1) printf("Nenhum Restaurante Registrado!\n");
-    if(readStatusCode <= 0) return 1;
+    if(readStatusCode <= 0) return readStatusCode;
 
     //Loop de login 
     while (1) {
