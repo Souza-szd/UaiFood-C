@@ -376,8 +376,7 @@ int readRests() {
 
         if(i >= numRests) {
             fclose(fRests);
-            printf("Erro na leitura dos dados do arquivo \"%s\"!\n\n", restsTxt);
-            return 0;
+            return 1;
         }
 
         fscanf(fRests, "%i", &restaurantes[i].codigo);
