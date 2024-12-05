@@ -140,7 +140,7 @@ int mostrarHistorico(int clienteCode) {
         return -1;
     }
 
-    printf("\n");
+    printf("\n---------------------------------------------------------------------\n\n");
 
     char codeStr[16];
     //Definindo codeStr como "[CODIGO_DO_CLIENTE]"
