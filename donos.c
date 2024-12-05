@@ -93,7 +93,7 @@ void renomearPrato (Prato *prato){
 }
 
 //função da tela de login e menu de opcoes
-void login() {
+int login() {
     int codigoRestaurante, opcao, pratoEscolhido, restauranteEscolhido, index_restaurante;
 
     mostrarCabecalho();
@@ -101,14 +101,14 @@ void login() {
     int readStatusCode = readRests();
 
     if(readStatusCode == -1) printf("Nenhum Restaurante Registrado!\n");
-    if(readStatusCode <= 0) return;
+    if(readStatusCode <= 0) return 1;
 
     //Loop de login 
     while (1) {
         voltaraomenu:
 
         if(numRests == 0)
-            return;
+            return 1;
 
         printf("\nLOGIN UAIFOOD RESTAURANTE\n");
         printf("\nDigite o codigo do restaurante (ou um numero negativo para sair):\n");
@@ -212,6 +212,8 @@ void login() {
 
         }
     }
+
+    return 1;
 }
 
 int main() {
@@ -234,7 +236,7 @@ int main() {
 
         switch(option) {
         case 2:
-            login();
+            hasExited = !login();
             break;
         case 1:
             hasExited = !createNewRest();
