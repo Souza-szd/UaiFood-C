@@ -181,8 +181,8 @@ int mostrarHistorico(int clienteCode) {
 }
 
 void print(FILE* file, char* str) {
-    printf(str);
-    fprintf(file, str);
+    printf("%s", str);
+    fprintf(file, "%s", str);
 }
 
 float resumir_retornarPreco(int clienteIndex) {
