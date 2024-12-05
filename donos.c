@@ -314,10 +314,7 @@ int createNewRest() {
 
     numRests++;
 
-    if(numRests > 1) 
-        restaurantes = (Restaurante*)realloc(restaurantes, numRests*sizeof(Restaurante));
-    else
-        restaurantes = (Restaurante*)malloc(sizeof(Restaurante));
+    restaurantes = (Restaurante*)realloc(restaurantes, numRests*sizeof(Restaurante));
 
     if(restaurantes == NULL) {
         allocerror();
